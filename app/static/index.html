@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eidosSpeech — TTS App · Free Text-to-Speech</title>
+    <meta name="description"
+        content="Free online text-to-speech app. 1,200+ voices, 75+ languages. Register for API access.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }, colors: { brand: { 400: '#34d399', 500: '#10b981', 600: '#059669' } } } }
+        }
+    </script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        body {
+            background: #050a06;
+            color: #e5e7eb;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, .1);
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #10b981;
+            cursor: pointer;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        .modal-bg {
+            background: rgba(0, 0, 0, .7);
+            backdrop-filter: blur(8px);
+        }
+
+        .modal {
+            background: #0d1a0f;
+            border: 1px solid rgba(255, 255, 255, .1);
+        }
+
+        select {
+            background: #0d1a0f;
+            border: 1px solid rgba(255, 255, 255, .1);
+            color: #e5e7eb;
+        }
+
+        select option {
+            background: #0d1a0f;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(16, 185, 129, .3);
+            border-radius: 3px;
+        }
+
+        .audio-player::-webkit-media-controls-panel {
+            background: #0d1a0f;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fade-in .3s ease forwards;
+        }
+    </style>
+    <!-- Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+
+<body class="font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- ── Navbar ─────────────────────────────────────────────── -->
+    <nav class="sticky top-0 z-40 border-b border-white/[.06]"
+        style="background: rgba(5,10,6,.9); backdrop-filter: blur(16px);">
+        <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2">
+                <div
+                    class="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center text-white font-bold text-xs shadow shadow-brand-500/30">
+                    e</div>
+                <span class="font-bold text-white">eidosSpeech</span>
+            </a>
+            <div class="flex items-center gap-2">
+                <!-- Auth buttons (swapped by JS) -->
+                <div id="nav-auth-anon" class="flex items-center gap-2">
+                    <button onclick="openModal('login')"
+                        class="text-sm text-gray-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">Sign
+                        In</button>
+                    <button onclick="openModal('register')"
+                        class="text-sm font-medium bg-brand-500 hover:bg-brand-400 text-white px-3 py-1.5 rounded-lg transition-colors">Register</button>
+                </div>
+                <div id="nav-auth-user" class="hidden items-center gap-3">
+                    <span id="nav-user-email" class="text-xs text-gray-500 hidden sm:block"></span>
+                    <a href="/dashboard"
+                        class="text-sm font-medium text-brand-400 hover:text-brand-300 transition-colors px-3 py-1.5 rounded-lg hover:bg-brand-500/10">Dashboard</a>
+                    <button id="nav-logout-btn"
+                        class="text-sm text-gray-500 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors">Sign
+                        Out</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ── Info Banner (tier-aware) ──────────────────────────── -->
+    <div id="info-banner"
+        class="border-b border-amber-500/20 bg-amber-500/5 px-4 py-2.5 text-center text-sm text-amber-400/80 hidden">
+        <span id="info-banner-text"></span>
+    </div>
+
+    <!-- ── Main App ───────────────────────────────────────────── -->
+    <main class="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
+        <div class="grid lg:grid-cols-[1fr_320px] gap-6">
+
+            <!-- Left: TTS Form -->
+            <div class="space-y-5">
+
+                <!-- Text Input -->
+                <div class="card rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="text-sm font-medium text-gray-300">Text to synthesize</label>
+                        <div class="flex items-center gap-2">
+                            <span id="char-count" class="text-xs text-gray-500">0</span>
+                            <span class="text-xs text-gray-600">/</span>
+                            <span id="char-limit" class="text-xs text-gray-500">500</span>
+                        </div>
+                    </div>
+                    <textarea id="tts-text" rows="8" placeholder="Type or paste your text here…"
+                        class="w-full bg-transparent text-gray-200 placeholder-gray-600 text-sm leading-relaxed focus:outline-none"
+                        maxlength="500" oninput="updateCharCount()"></textarea>
+                    <!-- Character bar -->
+                    <div class="mt-3 h-1 rounded-full bg-white/5 overflow-hidden">
+                        <div id="char-bar" class="h-full rounded-full bg-brand-500 transition-all" style="width:0%">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Voice + Controls -->
+                <div class="card rounded-2xl p-5 space-y-5">
+                    <div>
+                        <label class="text-sm font-medium text-gray-300 block mb-2">Voice</label>
+                        <div class="flex gap-2">
+                            <select id="voice-select"
+                                class="flex-1 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-500/50">
+                                <option value="">Loading voices...</option>
+                            </select>
+                            <select id="lang-filter"
+                                class="w-32 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-500/50"
+                                onchange="filterVoices()">
+                                <option value="">All langs</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Sliders -->
+                    <div class="grid sm:grid-cols-3 gap-4">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-xs text-gray-400">Speed</label>
+                                <span id="rate-value" class="text-xs text-brand-400 font-mono">+0%</span>
+                            </div>
+                            <input type="range" id="rate" min="-50" max="100" step="5" value="0"
+                                oninput="updateSlider('rate')" class="w-full">
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-xs text-gray-400">Pitch</label>
+                                <span id="pitch-value" class="text-xs text-brand-400 font-mono">+0Hz</span>
+                            </div>
+                            <input type="range" id="pitch" min="-50" max="50" step="5" value="0"
+                                oninput="updateSlider('pitch')" class="w-full">
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-xs text-gray-400">Volume</label>
+                                <span id="volume-value" class="text-xs text-brand-400 font-mono">+0%</span>
+                            </div>
+                            <input type="range" id="volume" min="-50" max="50" step="5" value="0"
+                                oninput="updateSlider('volume')" class="w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <button id="generate-btn" onclick="generateTTS()"
+                    class="w-full bg-brand-500 hover:bg-brand-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 flex items-center justify-center gap-2">
+                    <svg id="btn-icon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="btn-text">Generate Speech</span>
+                </button>
+
+                <!-- Audio Player -->
+                <div id="audio-section" class="card rounded-2xl p-5 hidden fade-in">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-medium text-gray-300">Output</span>
+                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                            <span id="cache-badge"
+                                class="hidden bg-brand-500/10 text-brand-400 border border-brand-500/20 px-2 py-0.5 rounded-full">⚡
+                                Cached</span>
+                            <span id="audio-voice-label"></span>
+                        </div>
+                    </div>
+                    <audio id="audio-player" controls class="w-full audio-player"
+                        style="height:44px; accent-color:#10b981;"></audio>
+                    <a id="download-btn" href="#" download="tts_audio.mp3"
+                        class="mt-3 w-full flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-2.5 transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download MP3
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right: Sidebar -->
+            <div class="space-y-5">
+
+                <!-- AdSense Slot -->
+                <div id="ad-slot-top"
+                    class="card rounded-2xl p-4 min-h-[180px] flex items-center justify-center border-dashed"
+                    style="border-color:rgba(255,255,255,.05);">
+                    <div class="text-center text-gray-700 text-xs">
+                        <div class="text-2xl mb-1">📢</div>
+                        Advertisement
+                    </div>
+                </div>
+
+                <!-- Usage Widget -->
+                <div class="card rounded-2xl p-5">
+                    <h3 class="text-sm font-semibold text-gray-300 mb-4">Today's Usage</h3>
+                    <div id="usage-widget">
+                        <div id="usage-anon" class="text-center space-y-3">
+                            <p class="text-xs text-gray-500 leading-relaxed">Register for higher limits, API access, and
+                                usage tracking.</p>
+                            <button onclick="openModal('register')"
+                                class="w-full text-sm font-medium bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/20 rounded-xl py-2 transition-colors">
+                                Register Free →
+                            </button>
+                        </div>
+                        <div id="usage-user" class="hidden space-y-3">
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+                                <span>Requests</span>
+                                <span><span id="usage-req">0</span> / <span id="usage-req-limit">30</span></span>
+                            </div>
+                            <div class="h-1.5 rounded-full bg-white/5 overflow-hidden mb-3">
+                                <div id="usage-req-bar" class="h-full rounded-full bg-brand-500 transition-all"
+                                    style="width:0%"></div>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+                                <span>Characters</span>
+                                <span><span id="usage-chars">0</span> / <span id="usage-chars-limit">1000</span></span>
+                            </div>
+                            <div class="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div id="usage-chars-bar" class="h-full rounded-full bg-brand-500 transition-all"
+                                    style="width:0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Key Widget (registered only) -->
+                <div id="api-key-widget" class="card rounded-2xl p-5 hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-gray-300">API Key</h3>
+                        <a href="/dashboard"
+                            class="text-xs text-brand-400 hover:text-brand-300 transition-colors">Dashboard →</a>
+                    </div>
+                    <div class="flex items-center gap-2 bg-black/30 rounded-xl px-3 py-2 border border-white/5">
+                        <code id="api-key-display"
+                            class="text-xs text-brand-400 font-mono flex-1 overflow-hidden text-ellipsis whitespace-nowrap">—</code>
+                        <button onclick="copyApiKey()"
+                            class="text-xs text-gray-500 hover:text-white transition-colors flex-shrink-0">Copy</button>
+                    </div>
+                </div>
+
+                <!-- AdSense Slot Below -->
+                <div id="ad-slot-below"
+                    class="card rounded-2xl p-4 min-h-[200px] flex items-center justify-center border-dashed"
+                    style="border-color:rgba(255,255,255,.05);">
+                    <div class="text-center text-gray-700 text-xs">
+                        <div class="text-2xl mb-1">📢</div>
+                        Advertisement
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ── Auth Modal ─────────────────────────────────────────── -->
+    <div id="modal-overlay" class="fixed inset-0 z-50 modal-bg hidden flex items-center justify-center p-4"
+        onclick="if(event.target===this)closeModal()">
+        <div class="modal rounded-2xl w-full max-w-md shadow-2xl fade-in">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-6 border-b border-white/5">
+                <div>
+                    <h2 id="modal-title" class="text-lg font-bold text-white">Sign In</h2>
+                    <p id="modal-subtitle" class="text-xs text-gray-500 mt-0.5">Welcome back to eidosSpeech</p>
+                </div>
+                <button onclick="closeModal()"
+                    class="text-gray-600 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors text-xl">&times;</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="form-login" class="p-6 space-y-4">
+                <div>
+                    <label class="text-xs text-gray-400 block mb-1.5">Email address</label>
+                    <input id="login-email" type="email" placeholder="you@example.com" autocomplete="email"
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500/50 transition-colors">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 block mb-1.5">Password</label>
+                    <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password"
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500/50 transition-colors"
+                        onkeydown="if(event.key==='Enter')doLogin()">
+                </div>
+                <!-- Turnstile Widget -->
+                <div id="cf-turnstile-login" class="cf-turnstile" data-sitekey="0x4AAAAAAAVO9E-K2xst8w1L"
+                    data-theme="dark"></div>
+
+                <button id="login-submit-btn" onclick="doLogin()"
+                    class="w-full bg-brand-500 hover:bg-brand-400 text-white font-semibold py-2.5 rounded-xl transition-colors shadow-lg shadow-brand-500/20">Sign
+                    In</button>
+                <div class="flex items-center justify-between text-xs text-gray-500">
+                    <button onclick="switchModal('forgot')" class="hover:text-gray-300 transition-colors">Forgot
+                        password?</button>
+                    <button onclick="switchModal('register')"
+                        class="hover:text-brand-400 transition-colors text-brand-500">Create account →</button>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="form-register" class="p-6 space-y-4 hidden">
+                <div>
+                    <label class="text-xs text-gray-400 block mb-1.5">Full name <span
+                            class="text-gray-600">(optional)</span></label>
+                    <input id="reg-name" type="text" placeholder="Your name"
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500/50 transition-colors">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 block mb-1.5">Email address</label>
+                    <input id="reg-email" type="email" placeholder="you@example.com" autocomplete="email"
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500/50 transition-colors">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 block mb-1.5">Password <span class="text-gray-600">(min 8
+                            characters)</span></label>
+                    <input id="reg-password" type="password" placeholder="Strong password" autocomplete="new-password"
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500/50 transition-colors">
+                </div>
+                <label class="flex items-start gap-2.5 cursor-pointer">
+                    <input id="reg-tos" type="checkbox" class="mt-0.5 accent-brand-500">
+                    <span class="text-xs text-gray-400">I agree to the <a href="/tos" target="_blank"
+                            class="text-brand-400 hover:underline">Terms of Service</a> and consent to receive
+                        transactional emails.</span>
+                </label>
+                <!-- Turnstile Widget -->
+                <div id="cf-turnstile-register" class="cf-turnstile" data-sitekey="0x4AAAAAAAVO9E-K2xst8w1L"
+                    data-theme="dark"></div>
+
+                <button id="register-submit-btn" onclick="doRegister()"
+                    class="w-full bg-brand-500 hover:bg-brand-400 text-white font-semibold py-2.5 rounded-xl transition-colors shadow-lg shadow-brand-500/20">Create
+                    Free Account</button>
+                <p class="text-center text-xs text-gray-500">Already have an account? <button
+                        onclick="switchModal('login')" class="text-brand-400 hover:underline">Sign in</button></p>
+            </div>
+
+            <!-- Forgot Password Form -->
+            <div id="form-forgot" class="p-6 space-y-4 hidden">
+                <p class="text-sm text-gray-400">Enter your email and we'll send a password reset link.</p>
+                <input id="forgot-email" type="email" placeholder="you@example.com"
+                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500/50 transition-colors">
+                <button onclick="doForgot()"
+                    class="w-full bg-brand-500 hover:bg-brand-400 text-white font-semibold py-2.5 rounded-xl transition-colors">Send
+                    Reset Link</button>
+                <p class="text-center text-xs text-gray-500"><button onclick="switchModal('login')"
+                        class="text-brand-400 hover:underline">Back to Sign In</button></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/toast.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/api-client.js"></script>
+    <script>
+        // ── Voice Management ───────────────────────────────────────────────────────
+        let allVoices = [];
+        let currentAudioBlob = null;
+
+        async function loadVoices() {
+            try {
+                const resp = await fetch('/api/v1/voices');
+                const data = await resp.json();
+                allVoices = data.voices || [];
+
+                // Populate language filter
+                const langs = [...new Set(allVoices.map(v => v.language_code))].sort();
+                const langSel = document.getElementById('lang-filter');
+                langs.forEach(lang => {
+                    langSel.innerHTML += `<option value="${lang}">${lang}</option>`;
+                });
+
+                filterVoices();
+            } catch (e) {
+                showToast('Failed to load voices.', 'error');
+            }
+        }
+
+        function filterVoices() {
+            const lang = document.getElementById('lang-filter').value;
+            const sel = document.getElementById('voice-select');
+            const prevVal = sel.value;
+
+            const filtered = lang ? allVoices.filter(v => v.language_code === lang) : allVoices;
+
+            sel.innerHTML = filtered.map(v =>
+                `<option value="${v.id}">${v.name} (${v.language_code} · ${v.gender})</option>`
+            ).join('');
+
+            // Try restore previous selection
+            if (prevVal && filtered.some(v => v.id === prevVal)) sel.value = prevVal;
+            else {
+                // Default to Indonesian
+                const idVoice = filtered.find(v => v.id === 'id-ID-GadisNeural');
+                if (idVoice) sel.value = idVoice.id;
+            }
+        }
+
+        // ── Char Counter ───────────────────────────────────────────────────────────
+        function updateCharCount() {
+            const text = document.getElementById('tts-text').value;
+            const limit = parseInt(document.getElementById('char-limit').textContent);
+            const count = text.length;
+            document.getElementById('char-count').textContent = count;
+
+            const pct = Math.min(100, (count / limit) * 100);
+            const bar = document.getElementById('char-bar');
+            bar.style.width = pct + '%';
+            bar.className = `h-full rounded-full transition-all ${pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-amber-500' : 'bg-brand-500'}`;
+        }
+
+        // ── Slider Controls ────────────────────────────────────────────────────────
+        function updateSlider(id) {
+            const val = parseInt(document.getElementById(id).value);
+            const sign = val >= 0 ? '+' : '';
+            const suffix = id === 'pitch' ? 'Hz' : '%';
+            document.getElementById(`${id}-value`).textContent = `${sign}${val}${suffix}`;
+        }
+
+        // ── TTS Generation ─────────────────────────────────────────────────────────
+        async function generateTTS() {
+            const text = document.getElementById('tts-text').value.trim();
+            const voice = document.getElementById('voice-select').value;
+
+            if (!text) { showToast('Please enter some text.', 'warning'); return; }
+            if (!voice) { showToast('Please select a voice.', 'warning'); return; }
+
+            const rateVal = parseInt(document.getElementById('rate').value);
+            const pitchVal = parseInt(document.getElementById('pitch').value);
+            const volumeVal = parseInt(document.getElementById('volume').value);
+
+            const formatVal = (v, suffix) => v >= 0 ? `+${v}${suffix}` : `${v}${suffix}`;
+
+            const btn = document.getElementById('generate-btn');
+            const btnText = document.getElementById('btn-text');
+            btn.disabled = true;
+            btnText.textContent = 'Generating…';
+
+            const headers = { 'Content-Type': 'application/json' };
+            const token = AuthStore.getToken();
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            const apiKey = AuthStore.getApiKey();
+            if (apiKey) headers['X-API-Key'] = apiKey;
+
+            try {
+                const resp = await fetch('/api/v1/tts', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        text,
+                        voice,
+                        rate: formatVal(rateVal, '%'),
+                        pitch: formatVal(pitchVal, 'Hz'),
+                        volume: formatVal(volumeVal, '%'),
+                    }),
+                });
+
+                if (!resp.ok) {
+                    const err = await resp.json();
+                    showToast(err.message || 'TTS generation failed.', 'error');
+                    // Show rate limit info
+                    if (resp.status === 429) {
+                        const ra = resp.headers.get('Retry-After');
+                        if (ra) showToast(`Retry after ${Math.ceil(ra / 60)} min.`, 'info', 8000);
+                    }
+                    return;
+                }
+
+                // Update rate limit display
+                const remaining = resp.headers.get('X-RateLimit-Remaining-Day');
+                const limit = resp.headers.get('X-RateLimit-Limit-Day');
+                const cached = resp.headers.get('X-Cache-Hit') === 'true';
+
+                if (AuthStore.isAuthenticated() && remaining !== null) {
+                    const used = parseInt(limit) - parseInt(remaining);
+                    document.getElementById('usage-req').textContent = used;
+                    const pct = (used / parseInt(limit)) * 100;
+                    document.getElementById('usage-req-bar').style.width = pct + '%';
+                }
+
+                // Play audio
+                const blob = await resp.blob();
+                currentAudioBlob = blob;
+                const url = URL.createObjectURL(blob);
+                const player = document.getElementById('audio-player');
+                player.src = url;
+
+                // Show audio section
+                document.getElementById('audio-section').classList.remove('hidden');
+                document.getElementById('audio-voice-label').textContent = voice.split('-').slice(2).join(' ');
+                document.getElementById('cache-badge').classList.toggle('hidden', !cached);
+
+                // Download link
+                const dlBtn = document.getElementById('download-btn');
+                dlBtn.href = url;
+                dlBtn.download = `tts_${voice}_${Date.now()}.mp3`;
+
+                player.play().catch(() => { });
+                showToast(cached ? '⚡ Served from cache' : 'Speech generated!', 'success', 3000);
+
+            } catch (e) {
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Generate Speech';
+            }
+        }
+
+        // ── Modal Management ───────────────────────────────────────────────────────
+        function openModal(type = 'login') {
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            document.getElementById('modal-overlay').classList.add('flex');
+            switchModal(type);
+        }
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.add('hidden');
+            document.getElementById('modal-overlay').classList.remove('flex');
+        }
+        function switchModal(type) {
+            ['login', 'register', 'forgot'].forEach(t => {
+                document.getElementById(`form-${t}`).classList.add('hidden');
+            });
+            document.getElementById(`form-${type}`).classList.remove('hidden');
+            document.getElementById('modal-title').textContent = type === 'login' ? 'Sign In' : type === 'register' ? 'Create Account' : 'Reset Password';
+            document.getElementById('modal-subtitle').textContent = type === 'login' ? 'Welcome back' : type === 'register' ? 'Free forever. 30 req/day.' : 'Enter your email';
+
+            // Reset Turnstile on switch
+            if (window.turnstile) {
+                turnstile.reset('#cf-turnstile-login');
+                turnstile.reset('#cf-turnstile-register');
+            }
+        }
+
+        // ── Auth Actions ───────────────────────────────────────────────────────────
+        async function doLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            if (!email || !password) { showToast('Fill all fields.', 'warning'); return; }
+
+            const turnstileToken = window.turnstile ? turnstile.getResponse('#cf-turnstile-login') : null;
+
+            try {
+                await ApiClient.auth.login(email, password, turnstileToken);
+                closeModal();
+                showToast('Logged in!', 'success');
+                await updateUIForAuth();
+            } catch (e) {
+                showToast(e.message || 'Login failed.', 'error');
+                if (window.turnstile) turnstile.reset('#cf-turnstile-login');
+            }
+        }
+
+        async function doRegister() {
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const name = document.getElementById('reg-name').value.trim();
+            const tos = document.getElementById('reg-tos').checked;
+            if (!email || !password) { showToast('Fill all fields.', 'warning'); return; }
+            if (!tos) { showToast('Please accept the Terms of Service.', 'warning'); return; }
+
+            const turnstileToken = window.turnstile ? turnstile.getResponse('#cf-turnstile-register') : null;
+
+            try {
+                await ApiClient.auth.register(email, password, name, tos, turnstileToken);
+                switchModal('login');
+                showToast('Account created! Check your email for verification.', 'success', 7000);
+            } catch (e) {
+                showToast(e.message || 'Registration failed.', 'error');
+                if (window.turnstile) turnstile.reset('#cf-turnstile-register');
+            }
+        }
+
+        async function doForgot() {
+            const email = document.getElementById('forgot-email').value.trim();
+            if (!email) { showToast('Enter your email.', 'warning'); return; }
+            try {
+                await ApiClient.auth.forgotPassword(email);
+                closeModal();
+                showToast('Reset link sent if email is registered.', 'success', 6000);
+            } catch (e) {
+                showToast(e.message || 'Failed to send reset link.', 'error');
+            }
+        }
+
+        async function updateUIForAuth() {
+            const isAuth = AuthStore.isAuthenticated();
+            document.getElementById('nav-auth-anon').classList.toggle('hidden', isAuth);
+            document.getElementById('nav-auth-user').classList.toggle('hidden', !isAuth);
+            document.getElementById('nav-auth-user').classList.toggle('flex', isAuth);
+
+            if (isAuth) {
+                const user = AuthStore.getUser();
+                if (user?.email) document.getElementById('nav-user-email').textContent = user.email;
+
+                document.getElementById('usage-anon').classList.add('hidden');
+                document.getElementById('usage-user').classList.remove('hidden');
+                document.getElementById('api-key-widget').classList.remove('hidden');
+
+                // Set char limit for registered
+                const textarea = document.getElementById('tts-text');
+                textarea.maxLength = 1000;
+                document.getElementById('char-limit').textContent = '1000';
+                updateCharCount();
+
+                // API key display
+                const apiKey = AuthStore.getApiKey();
+                if (apiKey) {
+                    document.getElementById('api-key-display').textContent = apiKey;
+                }
+
+                // Load usage  
+                try {
+                    const data = await ApiClient.auth.me();
+                    if (data.user?.usage) {
+                        const u = data.user.usage;
+                        document.getElementById('usage-req').textContent = u.requests;
+                        document.getElementById('usage-req-limit').textContent = u.requests_limit;
+                        document.getElementById('usage-chars').textContent = u.chars;
+                        document.getElementById('usage-chars-limit').textContent = u.chars_limit;
+                        document.getElementById('usage-req-bar').style.width = `${(u.requests / u.requests_limit) * 100}%`;
+                        document.getElementById('usage-chars-bar').style.width = `${(u.chars / u.chars_limit) * 100}%`;
+                    }
+                    if (data.user?.api_key) {
+                        document.getElementById('api-key-display').textContent = data.user.api_key;
+                    }
+                } catch (e) { }
+            } else {
+                // Info banner for anonymous
+                const banner = document.getElementById('info-banner');
+                banner.classList.remove('hidden');
+                document.getElementById('info-banner-text').innerHTML =
+                    'You\'re using eidosSpeech as guest (5 req/day, 500ch). <button onclick="openModal(\'register\')" class="underline font-medium">Register free</button> for 30 req/day and API access.';
+            }
+        }
+
+        async function copyApiKey() {
+            const key = document.getElementById('api-key-display').textContent;
+            if (!key || key === '—') return;
+            await navigator.clipboard.writeText(key).catch(() => { });
+            showToast('API key copied!', 'success', 2000);
+        }
+
+        // ── Init ───────────────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', async () => {
+            await AuthStore.init();
+            await updateUIForAuth();
+            await loadVoices();
+
+            // Logout button
+            document.getElementById('nav-logout-btn').addEventListener('click', async () => {
+                await ApiClient.auth.logout();
+                showToast('Logged out.', 'info');
+                window.location.reload();
+            });
+
+            // Hash-based modal trigger
+            if (window.location.hash === '#register') openModal('register');
+            if (window.location.hash === '#login') openModal('login');
+        });
+    </script>
+</body>
+
+</html>

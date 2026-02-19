@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service — eidosSpeech</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        body {
+            background: #050a06;
+            color: #e5e7eb;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .prose h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #f3f4f6;
+            margin: 2rem 0 .75rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, .06);
+        }
+
+        .prose p {
+            color: #9ca3af;
+            line-height: 1.75;
+            font-size: .9375rem;
+            margin-bottom: 1rem;
+        }
+
+        .prose ul {
+            color: #9ca3af;
+            line-height: 1.75;
+            font-size: .9375rem;
+            padding-left: 1.25rem;
+            list-style: disc;
+            margin-bottom: 1rem;
+        }
+
+        .prose li {
+            margin-bottom: .25rem;
+        }
+
+        .prose a {
+            color: #10b981;
+        }
+
+        .prose strong {
+            color: #e5e7eb;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+    <nav class="border-b border-white/[.06]" style="background:rgba(5,10,6,.9);">
+        <div class="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2">
+                <div
+                    class="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-bold text-xs">
+                    e</div>
+                <span class="font-bold text-white">eidosSpeech</span>
+            </a>
+            <a href="/app" class="text-sm text-gray-400 hover:text-white transition-colors">← Back to App</a>
+        </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto px-4 py-16">
+        <h1 class="text-3xl font-bold text-white mb-2">Terms of Service</h1>
+        <p class="text-sm text-gray-600 mb-10">Last updated: February 2026</p>
+
+        <div class="prose">
+            <h2>1. Acceptance of Terms</h2>
+            <p>By accessing or using eidosSpeech ("the Service"), you agree to be bound by these Terms of Service. If
+                you do not agree, please do not use the Service.</p>
+
+            <h2>2. Service Description</h2>
+            <p>eidosSpeech provides free text-to-speech conversion using Microsoft Edge TTS neural voices. The Service
+                is offered via:</p>
+            <ul>
+                <li>A web interface at eidosspeech.xyz</li>
+                <li>A REST API accessible with a registered API key</li>
+            </ul>
+            <p>The Service is provided "as is" with no uptime guarantees. Rate limits and feature availability may
+                change.</p>
+
+            <h2>3. Acceptable Use</h2>
+            <p>You agree <strong>not</strong> to use eidosSpeech to:</p>
+            <ul>
+                <li>Generate content that is illegal, harmful, defamatory, harassing, or fraudulent</li>
+                <li>Impersonate individuals for deceptive purposes</li>
+                <li>Create deepfake audio for misinformation or fraud</li>
+                <li>Circumvent rate limits or access controls</li>
+                <li>Resell or redistribute the Service as your own</li>
+                <li>Scrape or harvest data in violation of these terms</li>
+                <li>Use the Service in a way that exceeds your tier's usage limits</li>
+            </ul>
+
+            <h2>4. Registration and Account</h2>
+            <p>When registering, you agree to provide accurate information. You are responsible for maintaining the
+                security of your API key. Report compromised keys immediately by regenerating from your dashboard.</p>
+            <p>Maximum 3 registrations per IP address per day. Accounts with suspicious activity may be suspended.</p>
+
+            <h2>5. API Usage</h2>
+            <ul>
+                <li>Free tier: 30 requests/day, 1,000 characters/request (registered)</li>
+                <li>Anonymous: 5 requests/day, 500 characters/request (web UI only)</li>
+                <li>Limits reset at 00:00 UTC daily</li>
+                <li>Concurrent requests rejected — one request at a time per identity</li>
+                <li>Caching: Identical requests may return cached audio without consuming quota</li>
+            </ul>
+
+            <h2>6. Email Communications</h2>
+            <p>By registering, you consent to receive transactional emails including:</p>
+            <ul>
+                <li>Email verification messages</li>
+                <li>Password reset notifications</li>
+                <li>API key welcome emails</li>
+                <li>Occasional service updates</li>
+            </ul>
+            <p>You will <strong>not</strong> receive marketing or promotional emails without separate explicit consent.
+            </p>
+
+            <h2>7. Data and Privacy</h2>
+            <p>We collect and store: email address, password hash (bcrypt), IP address (rate limiting), and TTS request
+                metadata (character counts, voice preferences).</p>
+            <p>Audio content you submit is used only for TTS generation and cached briefly for performance. We do not
+                train AI models on your text or sell your data.</p>
+            <p>Accounts inactive for extended periods or unverified accounts may be automatically deleted.</p>
+
+            <h2>8. Service Availability</h2>
+            <p>eidosSpeech is offered free of charge as part of the eidosStack ecosystem. The Service may be modified,
+                suspended, or discontinued at any time without notice.</p>
+
+            <h2>9. Intellectual Property</h2>
+            <p>The TTS output you generate belongs to you. The eidosSpeech platform code, design, and brand are owned by
+                eidosStack. Microsoft Edge TTS voices are subject to Microsoft's terms of use.</p>
+
+            <h2>10. Limitation of Liability</h2>
+            <p>eidosSpeech and eidosStack are not liable for any indirect, incidental, or consequential damages arising
+                from use of the Service. Users are solely responsible for compliance with applicable laws when using
+                generated audio.</p>
+
+            <h2>11. Changes to Terms</h2>
+            <p>We may update these terms at any time. Continued use of the Service after changes constitutes acceptance.
+                Material changes will be announced on eidosspeech.xyz.</p>
+
+            <h2>12. Contact</h2>
+            <p>Questions about these terms? Contact us through <a href="https://eidosstack.com">eidosStack</a>.</p>
+        </div>
+    </main>
+
+    <footer class="border-t border-white/[.05] py-8 mt-16">
+        <div class="max-w-4xl mx-auto px-4 text-center text-sm text-gray-600">
+            <a href="/" class="hover:text-gray-400 transition-colors">eidosSpeech</a> — Part of <a
+                href="https://eidosstack.com"
+                class="hover:text-gray-400 transition-colors text-emerald-700">eidosStack</a>
+        </div>
+    </footer>
+
+</body>
+
+</html>

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation — eidosSpeech</title>
+    <meta name="description"
+        content="eidosSpeech API documentation. Endpoints, authentication, rate limits, voice list, code examples.">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        body {
+            background: #050a06;
+            color: #e5e7eb;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #21262d;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .method-post {
+            background: rgba(16, 185, 129, .15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, .25);
+        }
+
+        .method-get {
+            background: rgba(59, 130, 246, .15);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, .25);
+        }
+
+        nav.side a.active {
+            color: #10b981;
+            background: rgba(16, 185, 129, .08);
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .fade-in {
+            animation: fade-in .4s ease forwards;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <!-- ── Top Navbar ─────────────────────────────────────────── -->
+    <header class="sticky top-0 z-40 border-b border-white/[.06]"
+        style="background:rgba(5,10,6,.9);backdrop-filter:blur(16px)">
+        <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2">
+                <div
+                    class="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-bold text-xs">
+                    e</div>
+                <span class="font-bold text-white">eidosSpeech</span>
+                <span class="text-xs text-gray-600 ml-1">/ API Docs</span>
+            </a>
+            <div class="flex gap-4 items-center">
+                <a href="/app" class="text-sm text-gray-400 hover:text-white transition-colors">TTS App</a>
+                <a href="/app#register"
+                    class="text-sm font-medium bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-1.5 rounded-lg transition-colors">Get
+                    API Key</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── Layout ─────────────────────────────────────────────── -->
+    <div class="flex-1 max-w-7xl mx-auto w-full flex">
+
+        <!-- Sidebar -->
+        <nav
+            class="side hidden lg:block w-56 flex-shrink-0 sticky top-14 self-start h-[calc(100vh-3.5rem)] overflow-y-auto py-8 pr-4 pl-2 border-r border-white/[.05]">
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-xs text-gray-600 uppercase tracking-widest mb-2 px-3">Overview</h3>
+                    <ul class="space-y-0.5">
+                        <li><a href="#intro"
+                                class="block px-3 py-1.5 text-sm text-gray-400 hover:text-white rounded-lg transition-colors hover:bg-white/5">Introduction</a>
+                        </li>
+                        <li><a href="#auth"
+                                class="block px-3 py-1.5 text-sm text-gray-400 hover:text-white rounded-lg transition-colors hover:bg-white/5">Authentication</a>
+                        </li>
+                        <li><a href="#rate-limits"
+                                class="block px-3 py-1.5 text-sm text-gray-400 hover:text-white rounded-lg transition-colors hover:bg-white/5">Rate
+                                Limits</a></li>
+                        <li><a href="#errors"
+                                class="block px-3 py-1.5 text-sm text-gray-400 hover:text-white rounded-lg transition-colors hover:bg-white/5">Errors</a>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xs text-gray-600 uppercase tracking-widest mb-2 px-3">Endpoints</h3>
+                    <ul class="space-y-0.5">
+                        <li><a href="#ep-tts"
+                                class="block px-3 py-1.5 text-sm text-gray-400 hover:text-white rounded-lg transition-colors hover:bg-white/5">POST
+                                /tts</a></li>
+                        <li><a href="#ep-voices"
+                                class="block px-3 py-1.5 text-sm text-gray-400 hover:text-white rounded-lg transition-colors hover:bg-white/5">GET
+                                /voices</a></li>
+                        <li><a href="#ep-health"
+                                class="block px-3 py-1.5 text-sm text-gray-400 hover:text-white rounded-lg transition-colors hover:bg-white/5">GET
+                                /health</a></li>
+                        <li><a href="#ep-auth"
+                                class="block px-3 py-1.5 text-sm text-gray-400 hover:text-white rounded-lg transition-colors hover:bg-white/5">Auth
+                                Endpoints</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xs text-gray-600 uppercase tracking-widest mb-2 px-3">Resources</h3>
+                    <ul class="space-y-0.5">
+                        <li><a href="#voices-list"
+                                class="block px-3 py-1.5 text-sm text-gray-400 hover:text-white rounded-lg transition-colors hover:bg-white/5">Voice
+                                List</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content -->
+        <main class="flex-1 min-w-0 py-10 px-4 sm:px-8 lg:px-12 max-w-4xl">
+
+            <!-- Intro -->
+            <section id="intro" class="mb-16">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-white mb-3">API Documentation</h1>
+                    <p class="text-gray-400 leading-relaxed">The eidosSpeech REST API converts text to speech using
+                        Microsoft Edge TTS neural voices. All responses are MP3 audio or JSON.</p>
+                </div>
+
+                <div class="card rounded-2xl p-5 mb-6">
+                    <div class="text-xs text-gray-500 uppercase tracking-widest mb-2">Base URL</div>
+                    <code class="font-mono text-brand-400 text-sm"
+                        style="color:#34d399;">https://eidosspeech.xyz/api/v1</code>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <div class="card rounded-xl p-4">
+                        <div class="text-xs text-gray-500 mb-1">Response Format</div>
+                        <div class="text-sm text-gray-300">TTS: <code class="text-emerald-400 text-xs">audio/mpeg</code>
+                            (MP3)<br>Errors: <code class="text-emerald-400 text-xs">application/json</code></div>
+                    </div>
+                    <div class="card rounded-xl p-4">
+                        <div class="text-xs text-gray-500 mb-1">API Version</div>
+                        <div class="text-sm text-gray-300">All endpoints prefixed with <code
+                                class="text-emerald-400 text-xs">/api/v1/</code></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Authentication -->
+            <section id="auth" class="mb-16">
+                <h2 class="text-xl font-bold text-white mb-5">Authentication</h2>
+                <p class="text-gray-400 text-sm leading-relaxed mb-6">eidosSpeech supports two authentication methods.
+                    Use your <strong class="text-gray-300">API key</strong> for server-side integrations, or <strong
+                        class="text-gray-300">JWT tokens</strong> for user-facing apps.</p>
+
+                <div class="space-y-4">
+                    <div class="card rounded-2xl p-5">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span
+                                class="text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded font-mono">X-API-Key</span>
+                            <span class="text-xs text-gray-500">Recommended for server-side use</span>
+                        </div>
+                        <pre
+                            class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto">curl -H <span style="color:#34d399">"X-API-Key: esk_your_api_key_here"</span> ...</pre>
+                    </div>
+                    <div class="card rounded-2xl p-5">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span
+                                class="text-xs bg-blue-500/15 text-blue-400 border border-blue-500/25 px-2 py-0.5 rounded font-mono">Authorization:
+                                Bearer</span>
+                            <span class="text-xs text-gray-500">For JWT access tokens</span>
+                        </div>
+                        <pre
+                            class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto">curl -H <span style="color:#34d399">"Authorization: Bearer &lt;access_token&gt;"</span> ...</pre>
+                    </div>
+                    <div class="card rounded-2xl p-5">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span
+                                class="text-xs bg-amber-500/15 text-amber-400 border border-amber-500/25 px-2 py-0.5 rounded">No
+                                Auth</span>
+                            <span class="text-xs text-gray-500">Web UI only (anonymous tier)</span>
+                        </div>
+                        <p class="text-xs text-gray-400">Anonymous access (from eidosspeech.xyz origin) gets 5 req/day,
+                            500 char limit. No API key needed to use the web UI.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rate Limits -->
+            <section id="rate-limits" class="mb-16">
+                <h2 class="text-xl font-bold text-white mb-5">Rate Limits</h2>
+                <div class="overflow-x-auto mb-6">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-white/[.06]">
+                                <th class="text-left text-xs text-gray-500 pb-3 pr-6">Tier</th>
+                                <th class="text-left text-xs text-gray-500 pb-3 pr-6">Requests/Day</th>
+                                <th class="text-left text-xs text-gray-500 pb-3 pr-6">Chars/Request</th>
+                                <th class="text-left text-xs text-gray-500 pb-3">Requests/Min</th>
+                            </tr>
+                        </thead>
+                        <tbody class="space-y-2">
+                            <tr class="border-b border-white/[.03]">
+                                <td class="py-3 text-gray-400 pr-6">Anonymous (Web UI)</td>
+                                <td class="py-3 text-gray-300 pr-6 font-mono">5</td>
+                                <td class="py-3 text-gray-300 pr-6 font-mono">500</td>
+                                <td class="py-3 text-gray-300 font-mono">1</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 text-emerald-400 pr-6 font-medium">Registered (Free)</td>
+                                <td class="py-3 text-gray-300 pr-6 font-mono font-bold">30</td>
+                                <td class="py-3 text-gray-300 pr-6 font-mono font-bold">1,000</td>
+                                <td class="py-3 text-gray-300 font-mono font-bold">3</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card rounded-2xl p-5">
+                    <h3 class="text-sm font-semibold text-white mb-3">Rate Limit Response Headers</h3>
+                    <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto">X-RateLimit-Tier: registered
+X-RateLimit-Limit-Day: 30
+X-RateLimit-Remaining-Day: 24
+X-RateLimit-Limit-Min: 3
+X-RateLimit-Char-Limit: 1000
+X-Cache-Hit: false</pre>
+                    <p class="text-xs text-gray-500 mt-3">Daily limits reset at <strong class="text-gray-400">00:00
+                            UTC</strong>. Concurrent requests (same identity) are rejected with 429.</p>
+                </div>
+            </section>
+
+            <!-- TTS Endpoint -->
+            <section id="ep-tts" class="mb-16">
+                <div class="flex items-center gap-3 mb-5">
+                    <span class="method-post text-xs font-bold px-2.5 py-1 rounded-lg font-mono">POST</span>
+                    <h2 class="text-xl font-bold text-white font-mono">/tts</h2>
+                </div>
+                <p class="text-gray-400 text-sm mb-6">Generate speech from text. Returns MP3 audio bytes directly.</p>
+
+                <div class="card rounded-2xl p-5 mb-4">
+                    <h3 class="text-sm font-semibold text-white mb-3">Request Body</h3>
+                    <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto">{
+  <span style="color:#93c5fd">"text"</span>:   <span style="color:#34d399">"Your text here"</span>,      <span class="text-gray-600">// required</span>
+  <span style="color:#93c5fd">"voice"</span>:  <span style="color:#34d399">"id-ID-GadisNeural"</span>,  <span class="text-gray-600">// optional, default: id-ID-GadisNeural</span>
+  <span style="color:#93c5fd">"rate"</span>:   <span style="color:#34d399">"+0%"</span>,                 <span class="text-gray-600">// optional, range: -50% to +100%</span>
+  <span style="color:#93c5fd">"pitch"</span>:  <span style="color:#34d399">"+0Hz"</span>,                <span class="text-gray-600">// optional, range: -50Hz to +50Hz</span>
+  <span style="color:#93c5fd">"volume"</span>: <span style="color:#34d399">"+0%"</span>                  <span class="text-gray-600">// optional, range: -50% to +50%</span>
+}</pre>
+                </div>
+
+                <div class="card rounded-2xl p-5">
+                    <h3 class="text-sm font-semibold text-white mb-3">Response</h3>
+                    <div class="grid sm:grid-cols-2 gap-3">
+                        <div>
+                            <div class="text-xs text-emerald-400 mb-1.5">✓ 200 OK</div>
+                            <pre class="code-block rounded-lg p-3 text-xs text-gray-400">Content-Type: audio/mpeg
+(MP3 audio bytes)</pre>
+                        </div>
+                        <div>
+                            <div class="text-xs text-red-400 mb-1.5">✕ 429 Too Many Requests</div>
+                            <pre class="code-block rounded-lg p-3 text-xs text-gray-400">{
+  "error": "RateLimitError",
+  "message": "Daily limit reached",
+  "detail": { "limit": 30, "used": 30 }
+}
+<span class="text-amber-400">Retry-After: 86400</span></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Voices Endpoint -->
+            <section id="ep-voices" class="mb-16">
+                <div class="flex items-center gap-3 mb-5">
+                    <span class="method-get text-xs font-bold px-2.5 py-1 rounded-lg font-mono">GET</span>
+                    <h2 class="text-xl font-bold text-white font-mono">/voices</h2>
+                </div>
+                <p class="text-gray-400 text-sm mb-4">List all available TTS voices. Public endpoint — no
+                    authentication.</p>
+                <div class="card rounded-2xl p-5 mb-4">
+                    <h3 class="text-sm font-semibold text-white mb-3">Query Parameters</h3>
+                    <table class="w-full text-xs">
+                        <tbody class="space-y-2">
+                            <tr class="border-b border-white/5">
+                                <td class="py-2 text-gray-400 pr-4 font-mono">language</td>
+                                <td class="py-2 text-gray-500">Filter by language code: <code
+                                        class="text-emerald-400">id-ID</code>, <code
+                                        class="text-emerald-400">en-US</code></td>
+                            </tr>
+                            <tr class="border-b border-white/5">
+                                <td class="py-2 text-gray-400 pr-4 font-mono">gender</td>
+                                <td class="py-2 text-gray-500">Filter by gender: <code
+                                        class="text-emerald-400">Male</code> or <code
+                                        class="text-emerald-400">Female</code></td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-400 pr-4 font-mono">search</td>
+                                <td class="py-2 text-gray-500">Search voice name or language</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto">GET /api/v1/voices?language=id-ID&gender=Female
+
+{
+  "voices": [
+    { "id": "id-ID-GadisNeural", "name": "Gadis", "language": "Bahasa Indonesia", "gender": "Female" },
+    { "id": "id-ID-ArdiNeural", "name": "Ardi", "language": "Bahasa Indonesia", "gender": "Male" }
+  ],
+  "total": 2
+}</pre>
+            </section>
+
+            <!-- Errors Section -->
+            <section id="errors" class="mb-16">
+                <h2 class="text-xl font-bold text-white mb-5">Error Format</h2>
+                <p class="text-gray-400 text-sm mb-6">All errors return consistent JSON with <code
+                        class="text-emerald-400 text-xs">error</code>, <code
+                        class="text-emerald-400 text-xs">message</code>, and optional <code
+                        class="text-emerald-400 text-xs">detail</code>.</p>
+
+                <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto mb-6">{
+  <span style="color:#93c5fd">"error"</span>:   <span style="color:#34d399">"RateLimitError"</span>,
+  <span style="color:#93c5fd">"message"</span>: <span style="color:#34d399">"Daily limit reached (30 requests/day for registered tier)."</span>,
+  <span style="color:#93c5fd">"detail"</span>:  { <span style="color:#93c5fd">"limit"</span>: 30, <span style="color:#93c5fd">"used"</span>: 30, <span style="color:#93c5fd">"retry_after"</span>: 86400 }
+}</pre>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-white/[.06]">
+                                <th class="text-left text-xs text-gray-500 pb-3 pr-6">Status</th>
+                                <th class="text-left text-xs text-gray-500 pb-3 pr-6">Error Type</th>
+                                <th class="text-left text-xs text-gray-500 pb-3">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-white/[.03]">
+                                <td class="py-2.5 text-gray-400 pr-6 font-mono">400</td>
+                                <td class="py-2.5 text-gray-400 pr-6 font-mono text-xs">ValidationError</td>
+                                <td class="py-2.5 text-gray-500 text-xs">Bad request data</td>
+                            </tr>
+                            <tr class="border-b border-white/[.03]">
+                                <td class="py-2.5 text-gray-400 pr-6 font-mono">401</td>
+                                <td class="py-2.5 text-gray-400 pr-6 font-mono text-xs">AuthenticationError</td>
+                                <td class="py-2.5 text-gray-500 text-xs">Invalid or expired token</td>
+                            </tr>
+                            <tr class="border-b border-white/[.03]">
+                                <td class="py-2.5 text-gray-400 pr-6 font-mono">403</td>
+                                <td class="py-2.5 text-gray-400 pr-6 font-mono text-xs">ForbiddenError</td>
+                                <td class="py-2.5 text-gray-500 text-xs">No auth from external origin</td>
+                            </tr>
+                            <tr class="border-b border-white/[.03]">
+                                <td class="py-2.5 text-gray-400 pr-6 font-mono">409</td>
+                                <td class="py-2.5 text-gray-400 pr-6 font-mono text-xs">ConflictError</td>
+                                <td class="py-2.5 text-gray-500 text-xs">Email already registered</td>
+                            </tr>
+                            <tr class="border-b border-white/[.03]">
+                                <td class="py-2.5 text-gray-400 pr-6 font-mono">429</td>
+                                <td class="py-2.5 text-gray-400 pr-6 font-mono text-xs">RateLimitError</td>
+                                <td class="py-2.5 text-gray-500 text-xs">Rate limit hit — check Retry-After</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 text-gray-400 pr-6 font-mono">503</td>
+                                <td class="py-2.5 text-gray-400 pr-6 font-mono text-xs">ServiceUnavailable</td>
+                                <td class="py-2.5 text-gray-500 text-xs">TTS engine temporarily unavailable</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,73 @@
+# ── Secrets & Environment ──────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# Keep examples (safe to commit)
+!.env.example
+!.env.production.example
+
+# ── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+wheels/
+pip-wheel-metadata/
+.installed.cfg
+lib/
+lib64/
+
+# ── Virtual Environments ──────────────────────────────────
+venv/
+ENV/
+env/
+.venv/
+.env/
+
+# ── Database & Data ───────────────────────────────────────
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Cache & Logs ──────────────────────────────────────────
+*.log
+*.log.*
+logs/
+.cache/
+
+# ── IDE & OS ──────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Docker ────────────────────────────────────────────────
+.dockerignore
+
+# ── Testing ───────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ── Misc ──────────────────────────────────────────────────
+*.bak
+*.tmp
+*.orig
+node_modules/

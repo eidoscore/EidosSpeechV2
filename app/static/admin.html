@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — eidosSpeech</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        body {
+            background: #030704;
+            color: #e5e7eb;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .07);
+        }
+
+        .code-block {
+            font-family: 'JetBrains Mono', monospace;
+            background: #0d1117;
+            border: 1px solid #21262d;
+        }
+
+        .nav-btn.active {
+            background: rgba(16, 185, 129, .1);
+            color: #10b981;
+        }
+
+        .nav-btn {
+            color: #6b7280;
+        }
+
+        .nav-btn:hover {
+            color: #d1d5db;
+            background: rgba(255, 255, 255, .04);
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        .status-ok {
+            color: #10b981;
+        }
+
+        .status-err {
+            color: #ef4444;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+    <!-- Login overlay -->
+    <div id="admin-login" class="fixed inset-0 z-50 flex items-center justify-center" style="background:#030704;">
+        <div class="w-full max-w-sm">
+            <div class="text-center mb-8">
+                <div
+                    class="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">
+                    🛡️</div>
+                <h1 class="text-xl font-bold text-white">Admin Access</h1>
+                <p class="text-gray-500 text-sm mt-1">eidosSpeech Admin Panel</p>
+            </div>
+            <div class="card rounded-2xl p-6 space-y-4">
+                <input id="admin-key-input" type="password" placeholder="X-Admin-Key"
+                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                    onkeydown="if(event.key==='Enter')doAdminLogin()">
+                <button onclick="doAdminLogin()"
+                    class="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-semibold py-2.5 rounded-xl transition-colors">
+                    Enter Admin Panel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel" class="hidden flex h-screen">
+
+        <!-- Sidebar -->
+        <aside class="w-56 flex-shrink-0 border-r border-white/[.06] flex flex-col"
+            style="background:rgba(5,10,6,.95);">
+            <div class="h-14 flex items-center gap-2.5 px-4 border-b border-white/[.06]">
+                <div
+                    class="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-bold text-xs">
+                    e</div>
+                <div>
+                    <div class="text-sm font-bold text-white leading-none">eidosSpeech</div>
+                    <div class="text-xs text-gray-600">Admin</div>
+                </div>
+            </div>
+            <nav class="flex-1 p-3 space-y-0.5">
+                <button
+                    class="nav-btn active w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors"
+                    onclick="showTab('overview', this)">📊 Overview</button>
+                <button class="nav-btn w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors"
+                    onclick="showTab('users', this)">👥 Users</button>
+                <button class="nav-btn w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors"
+                    onclick="showTab('usage', this)">📈 Usage</button>
+                <button class="nav-btn w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors"
+                    onclick="showTab('blacklist', this)">🚫 Blacklist</button>
+            </nav>
+            <div class="p-3 border-t border-white/[.06]">
+                <button onclick="doAdminLogout()"
+                    class="w-full text-left px-3 py-2 rounded-xl text-sm text-gray-600 hover:text-gray-400 hover:bg-white/5 transition-colors">Sign
+                    Out</button>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <!-- Top bar -->
+            <div class="h-14 border-b border-white/[.06] flex items-center justify-between px-6"
+                style="background:rgba(5,10,6,.8)">
+                <h1 id="page-title" class="text-sm font-semibold text-white">Overview</h1>
+                <button onclick="loadCurrentTab()"
+                    class="text-xs text-gray-500 hover:text-gray-300 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors">↻
+                    Refresh</button>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-6">
+
+                <!-- Overview Tab -->
+                <div id="tab-overview" class="space-y-6">
+                    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div class="card rounded-xl p-4 text-center">
+                            <div id="s-total-users" class="text-2xl font-black text-emerald-400">—</div>
+                            <div class="text-xs text-gray-500 mt-1">Total Users</div>
+                        </div>
+                        <div class="card rounded-xl p-4 text-center">
+                            <div id="s-verified" class="text-2xl font-black text-emerald-400">—</div>
+                            <div class="text-xs text-gray-500 mt-1">Verified</div>
+                        </div>
+                        <div class="card rounded-xl p-4 text-center">
+                            <div id="s-api-keys" class="text-2xl font-black text-emerald-400">—</div>
+                            <div class="text-xs text-gray-500 mt-1">Active Keys</div>
+                        </div>
+                        <div class="card rounded-xl p-4 text-center">
+                            <div id="s-req-today" class="text-2xl font-black text-emerald-400">—</div>
+                            <div class="text-xs text-gray-500 mt-1">Req Today</div>
+                        </div>
+                        <div class="card rounded-xl p-4 text-center">
+                            <div id="s-req-yday" class="text-2xl font-black text-gray-400">—</div>
+                            <div class="text-xs text-gray-500 mt-1">Req Yesterday</div>
+                        </div>
+                    </div>
+                    <div class="card rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-white mb-3">Cache</h3>
+                        <div id="s-cache" class="text-sm text-gray-400">—</div>
+                    </div>
+                </div>
+
+                <!-- Users Tab -->
+                <div id="tab-users" class="hidden space-y-4">
+                    <div class="flex gap-2">
+                        <input id="user-search" type="text" placeholder="Search by email…"
+                            onkeydown="if(event.key==='Enter')loadUsers()"
+                            class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/50 transition-colors">
+                        <button onclick="loadUsers()"
+                            class="bg-emerald-500 hover:bg-emerald-400 text-white px-4 rounded-xl text-sm font-medium transition-colors">Search</button>
+                    </div>
+                    <div class="card rounded-xl overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="border-b border-white/[.06]">
+                                <tr>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Email</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Status</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Usage Today</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Joined</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody" class="text-gray-400">
+                                <tr>
+                                    <td colspan="5" class="py-8 text-center text-gray-600 text-sm">Loading…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-gray-600">
+                        <span id="users-total">— users</span>
+                        <div class="flex gap-2">
+                            <button onclick="prevPage()"
+                                class="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">←
+                                Prev</button>
+                            <button onclick="nextPage()"
+                                class="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">Next
+                                →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Usage Tab -->
+                <div id="tab-usage" class="hidden space-y-4">
+                    <div class="flex gap-2 items-center">
+                        <label class="text-xs text-gray-500">Last</label>
+                        <select id="usage-days" onchange="loadUsage()"
+                            class="bg-white/5 border border-white/10 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none">
+                            <option value="7">7 days</option>
+                            <option value="14">14 days</option>
+                            <option value="30" selected>30 days</option>
+                            <option value="60">60 days</option>
+                        </select>
+                    </div>
+                    <div class="card rounded-xl overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="border-b border-white/[.06]">
+                                <tr>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Date</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Requests</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Characters</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Unique IPs</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usage-tbody" class="text-gray-400">
+                                <tr>
+                                    <td colspan="4" class="py-8 text-center text-gray-600 text-sm">Loading…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Blacklist Tab -->
+                <div id="tab-blacklist" class="hidden space-y-4">
+                    <div class="card rounded-2xl p-5">
+                        <h3 class="text-sm font-semibold text-white mb-4">Add to Blacklist</h3>
+                        <div class="grid sm:grid-cols-4 gap-3">
+                            <select id="bl-type"
+                                class="bg-white/5 border border-white/10 text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none">
+                                <option value="ip">IP Address</option>
+                                <option value="email">Email</option>
+                            </select>
+                            <input id="bl-value" type="text" placeholder="IP or email address"
+                                class="sm:col-span-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/50 transition-colors">
+                            <button onclick="addBlacklist()"
+                                class="bg-red-500/80 hover:bg-red-500 text-white font-medium px-4 rounded-xl text-sm transition-colors">Block</button>
+                        </div>
+                    </div>
+
+                    <div class="card rounded-xl overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="border-b border-white/[.06]">
+                                <tr>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Type</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Value</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Reason</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Added</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blacklist-tbody" class="text-gray-400">
+                                <tr>
+                                    <td colspan="4" class="py-8 text-center text-gray-600 text-sm">Loading…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/toast.js"></script>
+    <script>
+        let _adminKey = null;
+        let _currentTab = 'overview';
+        let _usersPage = 1;
+
+        function apiHeaders() {
+            return { 'Content-Type': 'application/json', 'X-Admin-Key': _adminKey };
+        }
+
+        async function doAdminLogin() {
+            const key = document.getElementById('admin-key-input').value.trim();
+            if (!key) { showToast('Enter admin key.', 'warning'); return; }
+
+            try {
+                const resp = await fetch('/api/v1/admin/stats', { headers: { 'X-Admin-Key': key } });
+                if (!resp.ok) { showToast('Invalid admin key.', 'error'); return; }
+                _adminKey = key;
+                sessionStorage.setItem('eidos_admin_key', key);
+                document.getElementById('admin-login').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-panel').classList.add('flex');
+                loadCurrentTab();
+            } catch (e) {
+                showToast('Connection failed.', 'error');
+            }
+        }
+
+        function doAdminLogout() {
+            _adminKey = null;
+            sessionStorage.removeItem('eidos_admin_key');
+            location.reload();
+        }
+
+        function showTab(tab, btn) {
+            _currentTab = tab;
+            ['overview', 'users', 'usage', 'blacklist'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+            });
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            document.getElementById('page-title').textContent =
+                { overview: 'Overview', users: 'Users', usage: 'Usage Analytics', blacklist: 'Blacklist' }[tab] || tab;
+
+            loadCurrentTab();
+        }
+
+        function loadCurrentTab() {
+            if (_currentTab === 'overview') loadStats();
+            if (_currentTab === 'users') loadUsers();
+            if (_currentTab === 'usage') loadUsage();
+            if (_currentTab === 'blacklist') loadBlacklist();
+        }
+
+        async function loadStats() {
+            try {
+                const resp = await fetch('/api/v1/admin/stats', { headers: apiHeaders() });
+                const d = await resp.json();
+                document.getElementById('s-total-users').textContent = d.total_users;
+                document.getElementById('s-verified').textContent = d.verified_users;
+                document.getElementById('s-api-keys').textContent = d.active_api_keys;
+                document.getElementById('s-req-today').textContent = d.requests_today;
+                document.getElementById('s-req-yday').textContent = d.requests_yesterday;
+                document.getElementById('s-cache').innerHTML = `
+        <span class="text-white font-mono">${d.cache.files}</span> files ·
+        <span class="text-white font-mono">${d.cache.size_mb} MB</span> used /
+        <span class="text-gray-500">${d.cache.max_size_gb} GB max</span>
+      `;
+            } catch (e) { showToast('Failed to load stats.', 'error'); }
+        }
+
+        async function loadUsers() {
+            try {
+                const search = document.getElementById('user-search')?.value || '';
+                const resp = await fetch(`/api/v1/admin/users?page=${_usersPage}&per_page=20&search=${encodeURIComponent(search)}`, { headers: apiHeaders() });
+                const d = await resp.json();
+                document.getElementById('users-total').textContent = `${d.total} users`;
+
+                document.getElementById('users-tbody').innerHTML = d.users.map(u => `
+        <tr class="border-b border-white/[.03] hover:bg-white/[.02] transition-colors">
+          <td class="px-4 py-3">
+            <div class="text-sm text-gray-300">${u.email}</div>
+            <div class="text-xs text-gray-600">${u.full_name || ''}</div>
+          </td>
+          <td class="px-4 py-3">
+            <span class="${u.is_active ? 'text-emerald-400' : 'text-red-400'} text-xs">${u.is_active ? (u.is_verified ? 'Active' : 'Unverified') : 'Banned'}</span>
+          </td>
+          <td class="px-4 py-3 font-mono text-xs text-gray-400">${u.usage_today}</td>
+          <td class="px-4 py-3 text-xs text-gray-500">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+          <td class="px-4 py-3">
+            ${u.is_active ? `<button onclick="banUser(${u.id},'${u.email}')" class="text-xs text-red-400 hover:text-red-300 transition-colors">Ban</button>` : '<span class="text-xs text-gray-600">Banned</span>'}
+          </td>
+        </tr>
+      `).join('');
+            } catch (e) { showToast('Failed to load users.', 'error'); }
+        }
+
+        async function banUser(id, email) {
+            if (!confirm(`Ban user ${email}?`)) return;
+            const resp = await fetch(`/api/v1/admin/users/${id}/ban`, { method: 'POST', headers: apiHeaders() });
+            if (resp.ok) { showToast(`Banned ${email}`, 'success'); loadUsers(); }
+            else showToast('Failed to ban user.', 'error');
+        }
+
+        function prevPage() { if (_usersPage > 1) { _usersPage--; loadUsers(); } }
+        function nextPage() { _usersPage++; loadUsers(); }
+
+        async function loadUsage() {
+            const days = document.getElementById('usage-days').value;
+            const resp = await fetch(`/api/v1/admin/usage?days=${days}`, { headers: apiHeaders() });
+            const d = await resp.json();
+            const rows = [...d.days].reverse();
+            document.getElementById('usage-tbody').innerHTML = rows.map(r => `
+      <tr class="border-b border-white/[.03]">
+        <td class="px-4 py-3 font-mono text-xs text-gray-300">${r.date}</td>
+        <td class="px-4 py-3 font-mono text-xs text-gray-300">${r.requests.toLocaleString()}</td>
+        <td class="px-4 py-3 font-mono text-xs text-gray-400">${r.chars.toLocaleString()}</td>
+        <td class="px-4 py-3 font-mono text-xs text-gray-500">${r.unique_ips}</td>
+      </tr>
+    `).join('');
+        }
+
+        async function loadBlacklist() {
+            const resp = await fetch('/api/v1/admin/blacklist', { headers: apiHeaders() });
+            const d = await resp.json();
+            document.getElementById('blacklist-tbody').innerHTML = d.entries.length ? d.entries.map(e => `
+      <tr class="border-b border-white/[.03]">
+        <td class="px-4 py-3"><span class="text-xs ${e.type === 'ip' ? 'text-amber-400' : 'text-red-400'} font-mono uppercase">${e.type}</span></td>
+        <td class="px-4 py-3 font-mono text-xs text-gray-300">${e.value}</td>
+        <td class="px-4 py-3 text-xs text-gray-500">${e.reason || '—'}</td>
+        <td class="px-4 py-3 text-xs text-gray-600">${e.created_at ? new Date(e.created_at).toLocaleDateString() : '—'}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="4" class="py-8 text-center text-gray-600 text-sm">No blacklisted entries</td></tr>';
+        }
+
+        async function addBlacklist() {
+            const type = document.getElementById('bl-type').value;
+            const value = document.getElementById('bl-value').value.trim();
+            if (!value) { showToast('Enter a value.', 'warning'); return; }
+            const resp = await fetch('/api/v1/admin/blacklist', {
+                method: 'POST', headers: apiHeaders(),
+                body: JSON.stringify({ type, value }),
+            });
+            const d = await resp.json();
+            showToast(d.message, resp.ok ? 'success' : 'error');
+            if (resp.ok) { document.getElementById('bl-value').value = ''; loadBlacklist(); }
+        }
+
+        // Auto-login from session
+        const savedKey = sessionStorage.getItem('eidos_admin_key');
+        if (savedKey) {
+            document.getElementById('admin-key-input').value = savedKey;
+            doAdminLogin();
+        }
+    </script>
+</body>
+
+</html>

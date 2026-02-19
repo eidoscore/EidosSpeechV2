@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  # ── App (FastAPI) ─────────────────────────────────────────────────────────────
+  api:
+    build: .
+    container_name: eidosspeech-service
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - eidosspeech-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  eidosspeech-data:

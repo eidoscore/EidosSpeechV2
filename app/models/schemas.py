@@ -1,0 +1,210 @@
+"""
+eidosSpeech v2 — Pydantic Schemas
+Request/response models for all API endpoints.
+"""
+
+from datetime import datetime
+from typing import Optional, Literal
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+
+# ── TTS Schemas ───────────────────────────────────────────────────────────────
+
+class TTSRequest(BaseModel):
+    text: str = Field(..., description="Text to synthesize")
+    voice: str = Field(default="id-ID-GadisNeural", description="Voice ID (e.g., id-ID-GadisNeural)")
+    rate: str = Field(default="+0%", description="Speech rate e.g. +10%, -5%")
+    pitch: str = Field(default="+0Hz", description="Pitch e.g. +5Hz, -10Hz")
+    volume: str = Field(default="+0%", description="Volume e.g. +10%, -5%")
+
+    @field_validator("text")
+    @classmethod
+    def text_not_empty(cls, v):
+        v = v.strip()
+        if not v:
+            raise ValueError("text cannot be empty")
+        return v
+
+
+class TTSResponse(BaseModel):
+    """Used for tracking/logging (actual response is FileResponse)"""
+    voice: str
+    duration_ms: Optional[int] = None
+    cached: bool = False
+    cache_key: str = ""
+
+
+# ── Auth Schemas ──────────────────────────────────────────────────────────────
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=128, description="8-128 characters")
+    full_name: Optional[str] = Field(None, max_length=255)
+    tos_accepted: bool = Field(..., description="Must be true to register")
+    turnstile_token: Optional[str] = None
+
+    @field_validator("tos_accepted")
+    @classmethod
+    def must_accept_tos(cls, v):
+        if not v:
+            raise ValueError("You must accept the Terms of Service to register")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def password_not_common(cls, v):
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        if len(v) > 128:
+            raise ValueError("Password cannot exceed 128 characters")
+        return v
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+    turnstile_token: Optional[str] = None  # Cloudflare Turnstile (if enabled)
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str = Field(..., min_length=1)
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+
+# ── Auth Response Schemas ─────────────────────────────────────────────────────
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: Optional[dict] = None
+
+
+class UserUsageToday(BaseModel):
+    requests: int
+    chars: int
+    requests_limit: int
+    chars_limit: int
+
+
+class UserProfile(BaseModel):
+    email: str
+    full_name: Optional[str]
+    is_verified: bool
+    created_at: datetime
+    api_key: Optional[str] = None
+    usage: Optional[UserUsageToday] = None
+
+
+class RegenKeyResponse(BaseModel):
+    api_key: str
+    message: str = "API key regenerated successfully"
+
+
+class MeResponse(BaseModel):
+    user: UserProfile
+
+
+# ── Voice Schemas ─────────────────────────────────────────────────────────────
+
+class VoiceInfo(BaseModel):
+    id: str
+    name: str
+    language: str
+    language_code: str
+    gender: str
+
+
+class VoiceListResponse(BaseModel):
+    voices: list[VoiceInfo]
+    total: int
+
+
+# ── Health Schemas ────────────────────────────────────────────────────────────
+
+class HealthResponse(BaseModel):
+    status: str
+    version: str
+    db: str
+    cache: dict
+    uptime: float
+    proxy: dict
+
+
+# ── Admin Schemas ─────────────────────────────────────────────────────────────
+
+class AdminStatsResponse(BaseModel):
+    total_users: int
+    verified_users: int
+    active_api_keys: int
+    requests_today: int
+    requests_yesterday: int
+    cache: dict
+
+
+class AdminUserItem(BaseModel):
+    id: int
+    email: str
+    full_name: Optional[str]
+    is_verified: bool
+    is_active: bool
+    api_key: Optional[str]
+    usage_today: int
+    created_at: datetime
+
+
+class AdminUsersResponse(BaseModel):
+    total: int
+    page: int
+    per_page: int
+    users: list[AdminUserItem]
+
+
+class AdminUsageDay(BaseModel):
+    date: str
+    requests: int
+    chars: int
+    unique_ips: int
+
+
+class AdminUsageResponse(BaseModel):
+    days: list[AdminUsageDay]
+
+
+class AdminVoiceUsage(BaseModel):
+    voice: str
+    count: int
+
+
+class AdminBlacklistRequest(BaseModel):
+    type: Literal["ip", "email"]
+    value: str
+    reason: Optional[str] = None
+
+
+# ── Generic Response ──────────────────────────────────────────────────────────
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+class ErrorResponse(BaseModel):
+    error: str
+    message: str
+    detail: Optional[dict] = None

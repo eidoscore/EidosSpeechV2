@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email — eidosSpeech</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        body {
+            background: #050a06;
+            color: #e5e7eb;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            animation: spin .8s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fade-in .5s ease forwards;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <a href="/" class="flex items-center gap-2 mb-12">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">e
+        </div>
+        <span class="font-bold text-white text-lg">eidosSpeech</span>
+    </a>
+
+    <div class="w-full max-w-md">
+
+        <!-- Loading state -->
+        <div id="state-loading" class="text-center space-y-4">
+            <div class="w-16 h-16 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full spinner mx-auto">
+            </div>
+            <p class="text-gray-400">Verifying your email…</p>
+        </div>
+
+        <!-- Success state -->
+        <div id="state-success" class="hidden fade-in text-center space-y-6">
+            <div
+                class="w-20 h-20 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-center mx-auto text-4xl">
+                ✓</div>
+            <div>
+                <h1 class="text-2xl font-bold text-white mb-2">Email Verified!</h1>
+                <p class="text-gray-400 text-sm">Your account is ready. Here's your API key:</p>
+            </div>
+
+            <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-5 text-left">
+                <p class="text-xs text-emerald-400/70 uppercase tracking-widest mb-2">Your API Key</p>
+                <div class="flex items-center gap-3">
+                    <code id="api-key-display" class="text-emerald-400 font-mono text-sm flex-1 break-all">—</code>
+                    <button onclick="copyKey()"
+                        class="flex-shrink-0 text-xs text-gray-500 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition-colors">Copy</button>
+                </div>
+            </div>
+            <p class="text-xs text-gray-600">Save this key — it's also visible in your dashboard. You can regenerate it
+                anytime.</p>
+
+            <div class="grid grid-cols-2 gap-3">
+                <a href="/dashboard"
+                    class="py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm transition-colors text-center">
+                    Go to Dashboard
+                </a>
+                <a href="/app"
+                    class="py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-semibold text-sm transition-colors text-center">
+                    TTS App
+                </a>
+            </div>
+        </div>
+
+        <!-- Error state -->
+        <div id="state-error" class="hidden fade-in text-center space-y-6">
+            <div
+                class="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto text-4xl">
+                ✕</div>
+            <div>
+                <h1 class="text-2xl font-bold text-white mb-2">Verification Failed</h1>
+                <p id="error-message" class="text-gray-400 text-sm">The verification link is invalid or has expired.</p>
+            </div>
+
+            <div class="bg-white/[.03] border border-white/[.06] rounded-2xl p-5 text-left">
+                <h3 class="text-sm font-medium text-white mb-3">Request a new verification link</h3>
+                <div class="flex gap-2">
+                    <input id="resend-email" type="email" placeholder="your@email.com"
+                        class="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/50 transition-colors">
+                    <button onclick="resendVerification()"
+                        class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">Send</button>
+                </div>
+            </div>
+
+            <a href="/app" class="inline-block text-sm text-gray-500 hover:text-white transition-colors">Back to app
+                →</a>
+        </div>
+
+    </div>
+
+    <script src="/static/js/toast.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/api-client.js"></script>
+    <script>
+        let _apiKey = null;
+
+        function show(state) {
+            ['loading', 'success', 'error'].forEach(s => {
+                document.getElementById(`state-${s}`).classList.add('hidden');
+            });
+            document.getElementById(`state-${state}`).classList.remove('hidden');
+        }
+
+        async function verify() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+
+            if (!token) {
+                show('error');
+                document.getElementById('error-message').textContent = 'No verification token found in the URL.';
+                return;
+            }
+
+            try {
+                const data = await ApiClient.auth.verifyEmail(token);
+                _apiKey = data.user?.api_key || AuthStore.getApiKey();
+                if (_apiKey) document.getElementById('api-key-display').textContent = _apiKey;
+                show('success');
+            } catch (e) {
+                show('error');
+                document.getElementById('error-message').textContent = e.message || 'Verification failed.';
+            }
+        }
+
+        function copyKey() {
+            if (!_apiKey) return;
+            navigator.clipboard.writeText(_apiKey).then(() => {
+                showToast('API key copied!', 'success', 2000);
+            });
+        }
+
+        async function resendVerification() {
+            const email = document.getElementById('resend-email').value.trim();
+            if (!email) { showToast('Enter your email address.', 'warning'); return; }
+            try {
+                await ApiClient.auth.resendVerification(email);
+                showToast('New verification email sent!', 'success', 5000);
+            } catch (e) {
+                showToast(e.message || 'Failed to resend.', 'error');
+            }
+        }
+
+        verify();
+    </script>
+</body>
+
+</html>

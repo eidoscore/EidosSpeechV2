@@ -180,7 +180,7 @@
                                     <th class="text-left text-xs text-gray-500 px-4 py-3">Status</th>
                                     <th class="text-left text-xs text-gray-500 px-4 py-3">Usage Today</th>
                                     <th class="text-left text-xs text-gray-500 px-4 py-3">Joined</th>
-                                    <th class="text-left text-xs text-gray-500 px-4 py-3">Actions</th>
+                                    <th class="text-right text-xs text-gray-500 px-4 py-3">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="users-tbody" class="text-gray-400">
@@ -366,8 +366,9 @@
           </td>
           <td class="px-4 py-3 font-mono text-xs text-gray-400">${u.usage_today}</td>
           <td class="px-4 py-3 text-xs text-gray-500">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
-          <td class="px-4 py-3">
-            ${u.is_active ? `<button onclick="banUser(${u.id},'${u.email}')" class="text-xs text-red-400 hover:text-red-300 transition-colors">Ban</button>` : '<span class="text-xs text-gray-600">Banned</span>'}
+          <td class="px-4 py-3 text-right space-x-2">
+            ${u.is_active ? `<button onclick="banUser(${u.id},'${u.email}')" class="text-xs text-amber-400 hover:text-amber-300 transition-colors">Ban</button>` : '<span class="text-xs text-gray-600">Banned</span>'}
+            <button onclick="deleteUser(${u.id},'${u.email}')" class="text-xs text-red-400 hover:text-red-300 transition-colors">Delete</button>
           </td>
         </tr>
       `).join('');
@@ -375,10 +376,34 @@
         }
 
         async function banUser(id, email) {
-            if (!confirm(`Ban user ${email}?`)) return;
+            if (!confirm(`Ban user ${email}?\n\nThis will deactivate their account and disable their API key.`)) return;
             const resp = await fetch(`/api/v1/admin/users/${id}/ban`, { method: 'POST', headers: apiHeaders() });
             if (resp.ok) { showToast(`Banned ${email}`, 'success'); loadUsers(); }
             else showToast('Failed to ban user.', 'error');
+        }
+
+        async function deleteUser(id, email) {
+            if (!confirm(`⚠️ PERMANENTLY DELETE user ${email}?\n\nThis will delete:\n- User account\n- API keys\n- Usage records\n- Audit logs\n- Login attempts\n\nThis action CANNOT be undone!`)) return;
+            
+            // Double confirmation for safety
+            const confirmText = prompt(`Type "${email}" to confirm deletion:`);
+            if (confirmText !== email) {
+                showToast('Deletion cancelled - email did not match', 'warning');
+                return;
+            }
+            
+            const resp = await fetch(`/api/v1/admin/users/${id}`, { 
+                method: 'DELETE', 
+                headers: apiHeaders() 
+            });
+            
+            if (resp.ok) { 
+                showToast(`Permanently deleted ${email}`, 'success'); 
+                loadUsers(); 
+            } else {
+                const err = await resp.json();
+                showToast(err.message || 'Failed to delete user.', 'error');
+            }
         }
 
         function prevPage() { if (_usersPage > 1) { _usersPage--; loadUsers(); } }

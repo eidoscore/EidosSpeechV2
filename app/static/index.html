@@ -281,7 +281,7 @@
                     class="card rounded-2xl p-4 min-h-[180px] flex items-center justify-center border-dashed"
                     style="border-color:rgba(255,255,255,.05);">
                     <div class="text-center text-gray-700 text-xs">
-                        <div class="text-2xl mb-1">📢</div>
+                        <div class="text-2xl mb-1"></div>
                         Advertisement
                     </div>
                 </div>
@@ -294,11 +294,11 @@
                             e</div>
                         <div>
                             <div class="font-bold text-white leading-tight">eidosStack</div>
-                            <div class="text-[10px] text-gray-500 uppercase tracking-widest">Free tools era ✨</div>
+                            <div class="text-[10px] text-gray-500 uppercase tracking-widest">Free tools era</div>
                         </div>
                     </div>
                     <p class="text-xs text-gray-400 mb-4 leading-relaxed">
-                        part of the ecosystem 💅 we got OCR, AI, everything free for the homies. no cap.
+                        part of the ecosystem we got OCR, AI, everything free for the homies. no cap.
                     </p>
                     <a href="https://eidosstack.com" target="_blank"
                         class="block w-full text-center text-xs font-medium bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/20 rounded-xl py-2 transition-colors">
@@ -520,7 +520,7 @@
             });
 
             sel.innerHTML = filtered.map(v => {
-                const badge = v.is_multilingual ? ' 🌍' : '';
+                const badge = v.is_multilingual ? '' : '';
                 return `<option value="${v.id}">${v.name} (${v.language_code} · ${v.gender})${badge}</option>`;
             }).join('');
 

@@ -40,7 +40,7 @@ async def get_all_voices() -> list[dict]:
                     "language": v.get("LocaleName", ""),
                     "language_code": v.get("Locale", ""),
                     "gender": v.get("Gender", "Unknown"),
-                    "is_multilingual": "Multilingual" in v.get("VoiceTag", {}).get("ContentCategories", []),
+                    "is_multilingual": "Multilingual" in v.get("Name", ""),
                 }
                 for v in voices
             ]

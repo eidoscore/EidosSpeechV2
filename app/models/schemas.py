@@ -73,6 +73,10 @@ class RegisterRequest(BaseModel):
         if len(v) > 128:
             raise ValueError("Password cannot exceed 128 characters")
         
+        # Check bcrypt byte limit (72 bytes)
+        if len(v.encode('utf-8')) > 72:
+            raise ValueError("Password is too long. Please use a shorter password (max 72 bytes)")
+        
         # Check complexity requirements
         has_upper = any(c.isupper() for c in v)
         has_lower = any(c.islower() for c in v)

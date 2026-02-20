@@ -40,6 +40,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
+    """Hash password using bcrypt (max 72 bytes)"""
     return pwd_context.hash(password)
 
 

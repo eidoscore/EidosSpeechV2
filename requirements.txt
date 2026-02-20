@@ -21,6 +21,7 @@ python-jose[cryptography]==3.3.0
 
 # ── Password Hashing ─────────────────────────────────────────────────────────
 passlib[bcrypt]==1.7.4
+bcrypt==4.1.3  # Pin to 4.1.3 to avoid 5.0.0+ strict validation issues
 
 # ── HTTP Client (Resend API, proxy health checks) ─────────────────────────────
 httpx==0.28.1

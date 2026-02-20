@@ -951,6 +951,48 @@ app = FastAPI(
 
 ---
 
+## 🔧 RUNTIME ISSUES FIXED
+
+### Bcrypt Library Compatibility Issue ✅ FIXED
+
+**Issue:** `ValueError: password cannot be longer than 72 bytes` during bcrypt initialization  
+**Severity:** 🔴 CRITICAL (prevents registration)  
+**Status:** ✅ FIXED
+
+**Root Cause:**  
+Bcrypt version 5.0.0+ introduced stricter validation that causes errors during internal initialization, even when passwords are well under 72 bytes. This is a known compatibility issue between passlib and newer bcrypt versions.
+
+**Fix Applied:**
+```python
+# requirements.txt
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.3  # Pin to 4.1.3 to avoid 5.0.0+ strict validation issues
+```
+
+**Validation in Schema:**
+```python
+# app/models/schemas.py - RegisterRequest
+@field_validator("password")
+@classmethod
+def password_strength(cls, v):
+    # Check bcrypt byte limit (72 bytes)
+    if len(v.encode('utf-8')) > 72:
+        raise ValueError("Password is too long. Please use a shorter password (max 72 bytes)")
+    # ... other validations
+```
+
+**Benefits:**
+- ✅ Registration works correctly
+- ✅ Stable bcrypt version (4.1.3) prevents future issues
+- ✅ Clear error message if password exceeds 72 bytes
+- ✅ No silent truncation - explicit validation
+
+**References:**
+- [Bcrypt 72-byte limit documentation](https://passlib.readthedocs.io/en/stable/lib/passlib.hash.bcrypt.html)
+- Known issue with bcrypt 5.0.0+ and passlib compatibility
+
+---
+
 ## Conclusion
 
 **Status:** ✅ PRODUCTION READY

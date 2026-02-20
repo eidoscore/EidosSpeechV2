@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     anon_req_per_min: int = 1
 
     # ── Rate Limits — Registered (Free) ──────────────────────
-    free_char_limit: int = 1000
+    free_char_limit: int = 2000
     free_req_per_day: int = 30
     free_req_per_min: int = 3
 

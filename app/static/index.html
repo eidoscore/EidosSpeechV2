@@ -453,15 +453,27 @@
                 const data = await resp.json();
                 allVoices = data.voices || [];
 
-                // Populate language filter
-                const langs = [...new Set(allVoices.map(v => v.language_code))].sort();
+                // Populate language filter with friendly names
+                const langCodes = [...new Set(allVoices.map(v => v.language_code))].sort();
                 const langSel = document.getElementById('lang-filter');
-                langs.forEach(lang => {
-                    langSel.innerHTML += `<option value="${lang}">${lang}</option>`;
+                const displayNames = new Intl.DisplayNames(['en'], { type: 'language' });
+
+                langSel.innerHTML = '<option value="">All languages</option>';
+
+                langCodes.forEach(code => {
+                    try {
+                        // code is like "en-US", "id-ID"
+                        // We want "Indonesian (Indonesia)" or just "Indonesian"
+                        const name = displayNames.of(code);
+                        langSel.innerHTML += `<option value="${code}">${name} (${code})</option>`;
+                    } catch (e) {
+                        langSel.innerHTML += `<option value="${code}">${code}</option>`;
+                    }
                 });
 
                 filterVoices();
             } catch (e) {
+                console.error(e); // Debug
                 showToast('Failed to load voices.', 'error');
             }
         }
@@ -471,18 +483,37 @@
             const sel = document.getElementById('voice-select');
             const prevVal = sel.value;
 
-            const filtered = lang ? allVoices.filter(v => v.language_code === lang) : allVoices;
+            // Filter: Match language OR is_multilingual (if language is selected)
+            const filtered = lang
+                ? allVoices.filter(v => v.language_code === lang || v.is_multilingual)
+                : allVoices;
 
-            sel.innerHTML = filtered.map(v =>
-                `<option value="${v.id}">${v.name} (${v.language_code} · ${v.gender})</option>`
-            ).join('');
+            // Sort: Native voices first, then Multilingual, then alphabetical
+            filtered.sort((a, b) => {
+                if (lang) {
+                    const aIsNative = a.language_code === lang;
+                    const bIsNative = b.language_code === lang;
+                    if (aIsNative && !bIsNative) return -1;
+                    if (!aIsNative && bIsNative) return 1;
+                }
+                return a.name.localeCompare(b.name);
+            });
+
+            sel.innerHTML = filtered.map(v => {
+                const badge = v.is_multilingual ? ' 🌍' : '';
+                return `<option value="${v.id}">${v.name} (${v.language_code} · ${v.gender})${badge}</option>`;
+            }).join('');
 
             // Try restore previous selection
             if (prevVal && filtered.some(v => v.id === prevVal)) sel.value = prevVal;
             else {
-                // Default to Indonesian
-                const idVoice = filtered.find(v => v.id === 'id-ID-GadisNeural');
-                if (idVoice) sel.value = idVoice.id;
+                // Default logic
+                if (lang === 'id-ID') {
+                    const idVoice = filtered.find(v => v.id === 'id-ID-GadisNeural') || filtered[0];
+                    if (idVoice) sel.value = idVoice.id;
+                } else if (!prevVal && filtered.length > 0) {
+                    sel.value = filtered[0].id;
+                }
             }
         }
 
@@ -688,8 +719,8 @@
 
                 // Set char limit for registered
                 const textarea = document.getElementById('tts-text');
-                textarea.maxLength = 1000;
-                document.getElementById('char-limit').textContent = '1000';
+                textarea.maxLength = 2000;
+                document.getElementById('char-limit').textContent = '2000';
                 updateCharCount();
 
                 // API key display

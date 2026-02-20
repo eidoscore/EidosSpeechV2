@@ -1033,8 +1033,14 @@
                             <span class="text-sm text-gray-300">${COUNTRY_NAMES[c.country] || c.country}</span>
                         </div>
                         <div class="flex items-center gap-4">
-                            <span class="text-xs text-gray-500">${c.visitors} visitors</span>
-                            <span class="text-sm text-emerald-400 font-mono">${c.views}</span>
+                            <div class="text-right">
+                                <div class="text-sm text-emerald-400 font-mono">${c.views.toLocaleString()}</div>
+                                <div class="text-xs text-gray-500">views</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-blue-400 font-mono">${c.visitors.toLocaleString()}</div>
+                                <div class="text-xs text-gray-500">visitors</div>
+                            </div>
                         </div>
                     </div>
                 `).join('') : '<div class="text-center text-gray-600 text-sm py-4">No data yet</div>';
@@ -1051,8 +1057,14 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-4 flex-shrink-0">
-                            <span class="text-xs text-gray-500">${p.visitors} visitors</span>
-                            <span class="text-sm text-blue-400 font-mono">${p.views}</span>
+                            <div class="text-right">
+                                <div class="text-sm text-emerald-400 font-mono">${p.views.toLocaleString()}</div>
+                                <div class="text-xs text-gray-500">views</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-blue-400 font-mono">${p.visitors.toLocaleString()}</div>
+                                <div class="text-xs text-gray-500">visitors</div>
+                            </div>
                         </div>
                     </div>
                 `).join('') : '<div class="text-center text-gray-600 text-sm py-4">No data yet</div>';

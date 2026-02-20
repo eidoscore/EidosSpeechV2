@@ -367,22 +367,22 @@
           <td class="px-4 py-3 font-mono text-xs text-gray-400">${u.usage_today}</td>
           <td class="px-4 py-3 text-xs text-gray-500">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
           <td class="px-4 py-3 text-right space-x-2">
-            ${u.is_active ? `<button onclick="banUser(${u.id},'${u.email}')" class="text-xs text-amber-400 hover:text-amber-300 transition-colors">Ban</button>` : '<span class="text-xs text-gray-600">Banned</span>'}
-            <button onclick="deleteUser(${u.id},'${u.email}')" class="text-xs text-red-400 hover:text-red-300 transition-colors">Delete</button>
+            ${u.is_active ? `<button onclick="banUser('${u.uuid}','${u.email}')" class="text-xs text-amber-400 hover:text-amber-300 transition-colors">Ban</button>` : '<span class="text-xs text-gray-600">Banned</span>'}
+            <button onclick="deleteUser('${u.uuid}','${u.email}')" class="text-xs text-red-400 hover:text-red-300 transition-colors">Delete</button>
           </td>
         </tr>
       `).join('');
             } catch (e) { showToast('Failed to load users.', 'error'); }
         }
 
-        async function banUser(id, email) {
+        async function banUser(uuid, email) {
             if (!confirm(`Ban user ${email}?\n\nThis will deactivate their account and disable their API key.`)) return;
-            const resp = await fetch(`/api/v1/admin/users/${id}/ban`, { method: 'POST', headers: apiHeaders() });
+            const resp = await fetch(`/api/v1/admin/users/${uuid}/ban`, { method: 'POST', headers: apiHeaders() });
             if (resp.ok) { showToast(`Banned ${email}`, 'success'); loadUsers(); }
             else showToast('Failed to ban user.', 'error');
         }
 
-        async function deleteUser(id, email) {
+        async function deleteUser(uuid, email) {
             if (!confirm(`⚠️ PERMANENTLY DELETE user ${email}?\n\nThis will delete:\n- User account\n- API keys\n- Usage records\n- Audit logs\n- Login attempts\n\nThis action CANNOT be undone!`)) return;
             
             // Double confirmation for safety
@@ -392,7 +392,7 @@
                 return;
             }
             
-            const resp = await fetch(`/api/v1/admin/users/${id}`, { 
+            const resp = await fetch(`/api/v1/admin/users/${uuid}`, { 
                 method: 'DELETE', 
                 headers: apiHeaders() 
             });

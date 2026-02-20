@@ -158,6 +158,7 @@ async def admin_users(
 
         user_list.append({
             "id": u.id,
+            "uuid": u.uuid,
             "email": u.email,
             "full_name": u.full_name,
             "is_verified": u.is_verified,
@@ -256,15 +257,18 @@ async def admin_disable_key(
     return {"message": f"API key {key_id} disabled successfully"}
 
 
-# ── POST /admin/users/{user_id}/ban ───────────────────────────────────────────
-@router.post("/users/{user_id}/ban", dependencies=[Depends(verify_admin_key)])
+# ── POST /admin/users/{user_uuid}/ban ────────────────────────────────────────
+@router.post("/users/{user_uuid}/ban", dependencies=[Depends(verify_admin_key)])
 async def admin_ban_user(
-    user_id: int,
+    user_uuid: str,
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """Ban a user: set is_active=False, disable their API key"""
-    user = await db.get(User, user_id)
+    # Find user by UUID
+    result = await db.execute(select(User).where(User.uuid == user_uuid))
+    user = result.scalar_one_or_none()
+    
     if not user:
         raise ForbiddenError("User not found")
 
@@ -272,7 +276,7 @@ async def admin_ban_user(
 
     # Disable all API keys
     result = await db.execute(
-        select(ApiKey).where(ApiKey.user_id == user_id)
+        select(ApiKey).where(ApiKey.user_id == user.id)
     )
     for key in result.scalars().all():
         key.is_active = False
@@ -284,19 +288,19 @@ async def admin_ban_user(
         db,
         action='admin_ban_user',
         ip_address=ip,
-        resource=f'user:{user_id}',
+        resource=f'user:{user.uuid}',
         details={'email': user.email}
     )
 
     await db.commit()
 
-    logger.info(f"ADMIN_ACTION action=ban_user user_id={user_id} email={user.email}")
+    logger.info(f"ADMIN_ACTION action=ban_user uuid={user_uuid} email={user.email}")
     return {"message": f"User {user.email} has been banned"}
 
-# ── DELETE /admin/users/{user_id} ─────────────────────────────────────────────
-@router.delete("/users/{user_id}", dependencies=[Depends(verify_admin_key)])
+# ── DELETE /admin/users/{user_uuid} ───────────────────────────────────────────
+@router.delete("/users/{user_uuid}", dependencies=[Depends(verify_admin_key)])
 async def admin_delete_user(
-    user_id: int,
+    user_uuid: str,
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
@@ -313,11 +317,15 @@ async def admin_delete_user(
     """
     from app.db.models import AuditLog, LoginAttempt
     
-    user = await db.get(User, user_id)
+    # Find user by UUID
+    result = await db.execute(select(User).where(User.uuid == user_uuid))
+    user = result.scalar_one_or_none()
+    
     if not user:
         raise ForbiddenError("User not found")
     
     email = user.email
+    user_id = user.id
     
     # Get all API keys for this user
     api_keys_result = await db.execute(
@@ -352,7 +360,7 @@ async def admin_delete_user(
     
     await db.commit()
     
-    logger.info(f"ADMIN_ACTION action=delete_user user_id={user_id} email={email}")
+    logger.info(f"ADMIN_ACTION action=delete_user uuid={user_uuid} email={email}")
     return {"message": f"User {email} and all related data have been permanently deleted"}
 
     

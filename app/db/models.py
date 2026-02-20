@@ -3,6 +3,7 @@ eidosSpeech v2 — SQLAlchemy ORM Models
 8 tables: users, api_keys, daily_usage, token_revocations, registration_attempts, blacklist, login_attempts, audit_logs
 """
 
+import uuid
 from sqlalchemy import (
     Column, Integer, String, Boolean, DateTime, Date,
     ForeignKey, func, UniqueConstraint, Index
@@ -19,6 +20,7 @@ class User(Base):
     __tablename__ = "users"
 
     id                   = Column(Integer, primary_key=True, autoincrement=True)
+    uuid                 = Column(String(36), unique=True, nullable=False, index=True, default=lambda: str(uuid.uuid4()))
     email                = Column(String(255), unique=True, nullable=False, index=True)
     password_hash        = Column(String(255), nullable=False)               # bcrypt, salt 10
     full_name            = Column(String(255))
@@ -39,6 +41,7 @@ class User(Base):
     api_keys = relationship("ApiKey", back_populates="user", cascade="all, delete-orphan")
 
     __table_args__ = (
+        Index("idx_users_uuid", "uuid"),
         Index("idx_users_verification_token", "verification_token"),
         Index("idx_users_reset_token", "reset_token"),
     )

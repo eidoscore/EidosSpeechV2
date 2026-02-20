@@ -1176,6 +1176,167 @@
             });
         }
 
+        // ── Analytics Functions ────────────────────────────────────────────────
+        const COUNTRY_NAMES = {
+            'US': 'United States', 'ID': 'Indonesia', 'IN': 'India', 'CN': 'China',
+            'BR': 'Brazil', 'PK': 'Pakistan', 'NG': 'Nigeria', 'BD': 'Bangladesh',
+            'RU': 'Russia', 'MX': 'Mexico', 'JP': 'Japan', 'PH': 'Philippines',
+            'EG': 'Egypt', 'ET': 'Ethiopia', 'VN': 'Vietnam', 'CD': 'DR Congo',
+            'TR': 'Turkey', 'IR': 'Iran', 'DE': 'Germany', 'TH': 'Thailand',
+            'GB': 'United Kingdom', 'FR': 'France', 'IT': 'Italy', 'ZA': 'South Africa',
+            'KR': 'South Korea', 'ES': 'Spain', 'CA': 'Canada', 'AU': 'Australia',
+            'MY': 'Malaysia', 'SG': 'Singapore', 'NL': 'Netherlands', 'BE': 'Belgium',
+            'SE': 'Sweden', 'NO': 'Norway', 'DK': 'Denmark', 'FI': 'Finland',
+            'PL': 'Poland', 'AT': 'Austria', 'CH': 'Switzerland', 'IE': 'Ireland',
+            'NZ': 'New Zealand', 'HK': 'Hong Kong', 'TW': 'Taiwan'
+        };
+
+        async function loadAnalytics() {
+            try {
+                const period = document.getElementById('analytics-period').value;
+                const resp = await fetch(`/api/v1/admin/analytics?period=${period}`, { headers: apiHeaders() });
+                const d = await resp.json();
+                
+                document.getElementById('analytics-total-views').textContent = d.totals.views.toLocaleString();
+                document.getElementById('analytics-total-visitors').textContent = d.totals.visitors.toLocaleString();
+                
+                updateTrafficChart(d.traffic, period);
+                
+                const countriesHtml = d.top_countries.length > 0 ? d.top_countries.map((c, i) => `
+                    <div class="flex items-center justify-between py-2 border-b border-white/[.03]">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs text-gray-600 font-mono w-6">#${i + 1}</span>
+                            <span class="text-sm text-gray-300">${COUNTRY_NAMES[c.country] || c.country}</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs text-gray-500">${c.visitors} visitors</span>
+                            <span class="text-sm text-emerald-400 font-mono">${c.views}</span>
+                        </div>
+                    </div>
+                `).join('') : '<div class="text-center text-gray-600 text-sm py-4">No data yet</div>';
+                document.getElementById('top-countries').innerHTML = countriesHtml;
+                
+                const pagesHtml = d.top_pages.length > 0 ? d.top_pages.map((p, i) => `
+                    <div class="flex items-center justify-between py-2 border-b border-white/[.03]">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs text-gray-600 font-mono w-6">#${i + 1}</span>
+                            <span class="text-sm text-gray-300 font-mono truncate">${p.path}</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs text-gray-500">${p.visitors} visitors</span>
+                            <span class="text-sm text-blue-400 font-mono">${p.views}</span>
+                        </div>
+                    </div>
+                `).join('') : '<div class="text-center text-gray-600 text-sm py-4">No data yet</div>';
+                document.getElementById('top-pages').innerHTML = pagesHtml;
+                
+            } catch (e) {
+                showToast('Failed to load analytics.', 'error');
+                console.error('Analytics error:', e);
+            }
+        }
+
+        function updateTrafficChart(traffic, period) {
+            const labels = traffic.map(t => {
+                if (period === 'daily') return t.date.substring(5);
+                if (period === 'weekly') return t.week;
+                return t.month;
+            });
+            const views = traffic.map(t => t.views);
+            const visitors = traffic.map(t => t.visitors);
+
+            if (_trafficChart) _trafficChart.destroy();
+
+            const ctx = document.getElementById('traffic-chart').getContext('2d');
+            _trafficChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Page Views',
+                            data: views,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: '#10b981',
+                            pointBorderColor: '#030704',
+                            pointBorderWidth: 2
+                        },
+                        {
+                            label: 'Unique Visitors',
+                            data: visitors,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: '#3b82f6',
+                            pointBorderColor: '#030704',
+                            pointBorderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#9ca3af',
+                                font: { size: 12 },
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#10b981',
+                            bodyColor: '#e5e7eb',
+                            borderColor: 'rgba(16, 185, 129, 0.2)',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#6b7280',
+                                font: { size: 11 }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#6b7280',
+                                font: { size: 11 },
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
 
         // Auto-login from session
         const savedKey = sessionStorage.getItem('eidos_admin_key');

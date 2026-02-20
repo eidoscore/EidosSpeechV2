@@ -965,18 +965,6 @@
             if (resp.ok) { document.getElementById('bl-value').value = ''; loadBlacklist(); }
         }
 
-        // Auto-login from session
-        const savedKey = sessionStorage.getItem('eidos_admin_key');
-        if (savedKey) {
-            document.getElementById('admin-key-input').value = savedKey;
-            doAdminLogin();
-        }
-    </script>
-</body>
-
-</html>
-
-
         // ── Analytics Functions ────────────────────────────────────────────────
         const COUNTRY_NAMES = {
             'US': 'United States', 'ID': 'Indonesia', 'IN': 'India', 'CN': 'China',

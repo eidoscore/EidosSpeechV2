@@ -405,3 +405,12 @@ async def admin_page():
     if path.exists():
         return FileResponse(str(path))
     return JSONResponse({"error": "Admin page not found"}, status_code=404)
+
+
+@app.get("/blog", include_in_schema=False)
+async def blog_page():
+    """Blog homepage"""
+    path = STATIC_DIR / "blog.html"
+    if path.exists():
+        return FileResponse(str(path))
+    return JSONResponse({"error": "Blog not found"}, status_code=404)

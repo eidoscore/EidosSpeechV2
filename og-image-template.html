@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>OG Image Generator - eidosSpeech</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        .canvas {
+            width: 1200px;
+            height: 630px;
+            background: linear-gradient(135deg, #050a06 0%, #0a1508 50%, #050a06 100%);
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .glow2 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(52, 211, 153, 0.2) 0%, transparent 70%);
+            bottom: -100px;
+            right: -100px;
+        }
+        .content {
+            position: relative;
+            z-index: 10;
+            padding: 80px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: #10b981;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        }
+        .title {
+            font-size: 72px;
+            font-weight: 900;
+            color: white;
+            margin: 0 0 20px 0;
+            line-height: 1.1;
+            letter-spacing: -2px;
+        }
+        .subtitle {
+            font-size: 36px;
+            font-weight: 600;
+            background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 40px 0;
+        }
+        .features {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            color: #d1d5db;
+        }
+        .feature-icon {
+            font-size: 32px;
+        }
+        .feature-text {
+            font-weight: 600;
+        }
+        .flags {
+            display: flex;
+            gap: 16px;
+            font-size: 40px;
+            margin-bottom: 40px;
+        }
+        .url {
+            font-size: 24px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .instructions {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            color: #9ca3af;
+        }
+        .instructions h3 {
+            color: #10b981;
+            margin-top: 0;
+        }
+        .instructions code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #34d399;
+        }
+    </style>
+</head>
+<body>
+    <div class="canvas" id="og-canvas">
+        <div class="glow"></div>
+        <div class="glow2"></div>
+        <div class="content">
+            <div class="badge">
+                <div class="badge-dot"></div>
+                Free · Open · No Credit Card
+            </div>
+            <div class="logo">e</div>
+            <h1 class="title">eidosSpeech</h1>
+            <h2 class="subtitle">Free Text-to-Speech API</h2>
+            <div class="features">
+                <div class="feature">
+                    <span class="feature-icon">🎙️</span>
+                    <span class="feature-text">1,200+ Voices</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🌍</span>
+                    <span class="feature-text">75+ Languages</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">⚡</span>
+                    <span class="feature-text">100% Free</span>
+                </div>
+            </div>
+            <div class="flags">
+                🇺🇸 🇮🇩 🇯🇵 🇪🇸 🇫🇷 🇩🇪 🇨🇳 🇰🇷
+            </div>
+            <div class="url">eidosspeech.xyz</div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h3>📸 How to Create OG Image (og-image.png)</h3>
+        <p><strong>Option 1: Screenshot (Quick)</strong></p>
+        <ol>
+            <li>Open this HTML file in browser (1200x630 canvas above)</li>
+            <li>Take screenshot of the canvas area only</li>
+            <li>Save as <code>og-image.png</code></li>
+            <li>Place in <code>app/static/og-image.png</code></li>
+        </ol>
+        
+        <p><strong>Option 2: Online Tool (Better Quality)</strong></p>
+        <ol>
+            <li>Go to <a href="https://www.canva.com/" target="_blank" style="color: #10b981;">Canva.com</a></li>
+            <li>Create custom size: 1200 x 630 px</li>
+            <li>Recreate the design above with these specs:
+                <ul>
+                    <li>Background: Dark gradient (#050a06 to #0a1508)</li>
+                    <li>Logo: 80x80px emerald square with "e"</li>
+                    <li>Title: "eidosSpeech" - 72px, white, bold</li>
+                    <li>Subtitle: "Free Text-to-Speech API" - 36px, emerald gradient</li>
+                    <li>Features with emojis</li>
+                    <li>Language flags</li>
+                </ul>
+            </li>
+            <li>Export as PNG (1200x630px)</li>
+            <li>Save as <code>app/static/og-image.png</code></li>
+        </ol>
+
+        <p><strong>Option 3: Use Figma/Photoshop</strong></p>
+        <ol>
+            <li>Create 1200x630px artboard</li>
+            <li>Follow design specs in <code>OG_IMAGE_SPECS.md</code></li>
+            <li>Export as PNG @2x</li>
+            <li>Save as <code>app/static/og-image.png</code></li>
+        </ol>
+
+        <p><strong>After creating the image:</strong></p>
+        <ol>
+            <li>Place file at: <code>app/static/og-image.png</code></li>
+            <li>Test on: <a href="https://developers.facebook.com/tools/debug/" target="_blank" style="color: #10b981;">Facebook Debugger</a></li>
+            <li>Test on: <a href="https://cards-dev.twitter.com/validator" target="_blank" style="color: #10b981;">Twitter Card Validator</a></li>
+        </ol>
+
+        <p style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <strong>Quick Test:</strong> Once uploaded, visit <code>https://eidosspeech.xyz/og-image.png</code> to verify it's accessible.
+        </p>
+    </div>
+</body>
+</html>

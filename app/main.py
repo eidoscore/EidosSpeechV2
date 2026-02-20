@@ -386,8 +386,21 @@ from app.api.v1 import router as api_v1_router
 app.include_router(api_v1_router, prefix="/api/v1")
 
 # ── Static Files ───────────────────────────────────────────────────────────────
+class NoCacheStaticFiles(StaticFiles):
+    """Static files with cache-control headers to prevent aggressive caching"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        # Add cache-control headers to prevent aggressive caching
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
 if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    app.mount("/static", NoCacheStaticFiles(directory=str(STATIC_DIR)), name="static")
 
 # ── Page Routes ───────────────────────────────────────────────────────────────
 @app.get("/", include_in_schema=False)
@@ -467,7 +480,12 @@ async def admin_page():
     """Admin panel page"""
     path = STATIC_DIR / "admin.html"
     if path.exists():
-        return FileResponse(str(path))
+        response = FileResponse(str(path))
+        # Add cache-control headers to prevent aggressive caching
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
     return JSONResponse({"error": "Admin page not found"}, status_code=404)
 
 

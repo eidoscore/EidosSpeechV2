@@ -303,73 +303,6 @@ async def admin_delete_user(
     """
     Permanently delete a user and all related data.
     This action cannot be undone!
-
-    Deletes:
-    - User account
-    - API keys
-    - Daily usage records
-    - Audit logs
-    - Login attempts
-    """
-    user = await db.get(User, user_id)
-    if not user:
-        raise ForbiddenError("User not found")
-
-    email = user.email
-
-    # Get all API keys for this user
-    api_keys_result = await db.execute(
-        select(ApiKey).where(ApiKey.user_id == user_id)
-    )
-    api_keys = api_keys_result.scalars().all()
-    api_key_ids = [key.id for key in api_keys]
-
-    # Delete daily usage records
-    if api_key_ids:
-        await db.execute(
-            select(DailyUsage).where(DailyUsage.api_key_id.in_(api_key_ids))
-        )
-        from sqlalchemy import delete as sql_delete
-        await db.execute(
-            sql_delete(DailyUsage).where(DailyUsage.api_key_id.in_(api_key_ids))
-        )
-
-    # Delete API keys
-    for key in api_keys:
-        await db.delete(key)
-
-    # Delete audit logs
-    from app.db.models import AuditLog
-    await db.execute(
-        sql_delete(AuditLog).where(AuditLog.user_id == user_id)
-    )
-
-    # Delete login attempts
-    from app.db.models import LoginAttempt
-    await db.execute(
-        sql_delete(LoginAttempt).where(LoginAttempt.email == email)
-    )
-
-    # Finally, delete the user
-    await db.delete(user)
-
-    await db.commit()
-
-    logger.info(f"ADMIN_ACTION action=delete_user user_id={user_id} email={email}")
-    return {"message": f"User {email} and all related data have been permanently deleted"}
-
-
-
-# ── DELETE /admin/users/{user_id} ─────────────────────────────────────────────
-@router.delete("/users/{user_id}", dependencies=[Depends(verify_admin_key)])
-async def admin_delete_user(
-    user_id: int,
-    request: Request,
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    Permanently delete a user and all related data.
-    This action cannot be undone!
     
     Deletes:
     - User account
@@ -398,6 +331,30 @@ async def admin_delete_user(
         await db.execute(
             sql_delete(DailyUsage).where(DailyUsage.api_key_id.in_(api_key_ids))
         )
+    
+    # Delete API keys
+    await db.execute(
+        sql_delete(ApiKey).where(ApiKey.user_id == user_id)
+    )
+    
+    # Delete audit logs
+    await db.execute(
+        sql_delete(AuditLog).where(AuditLog.user_id == user_id)
+    )
+    
+    # Delete login attempts
+    await db.execute(
+        sql_delete(LoginAttempt).where(LoginAttempt.email == email)
+    )
+    
+    # Finally, delete the user
+    await db.delete(user)
+    
+    await db.commit()
+    
+    logger.info(f"ADMIN_ACTION action=delete_user user_id={user_id} email={email}")
+    return {"message": f"User {email} and all related data have been permanently deleted"}
+
     
     # Delete API keys
     for key in api_keys:

@@ -1,158 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>eidosSpeech — Free Text-to-Speech API · 1,200+ Voices · 75+ Languages</title>
-  <meta name="description" content="Free Text-to-Speech API powered by Microsoft Edge TTS. 1,200+ voices across 75+ languages. Free tier with 30 req/day. No credit card required.">
+  <meta name="description"
+    content="Free Text-to-Speech API powered by Microsoft Edge TTS. 1,200+ voices across 75+ languages. Free tier with 30 req/day. No credit card required.">
   <meta property="og:title" content="eidosSpeech — Free TTS API">
   <meta property="og:description" content="1,200+ voices, 75+ languages. Free forever. Register for API access.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
-          colors: { brand: { 50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',500:'#10b981',600:'#059669',700:'#047857',800:'#065f46',900:'#064e3b' } },
+          colors: { brand: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' } },
           animation: { 'fade-in': 'fadeIn .6s ease forwards', 'slide-up': 'slideUp .6s ease forwards', 'pulse-slow': 'pulse 4s ease-in-out infinite' },
-          keyframes: { fadeIn: { from:{ opacity:0 }, to:{ opacity:1 } }, slideUp: { from:{ opacity:0, transform:'translateY(24px)' }, to:{ opacity:1, transform:'translateY(0)' } } }
+          keyframes: { fadeIn: { from: { opacity: 0 }, to: { opacity: 1 } }, slideUp: { from: { opacity: 0, transform: 'translateY(24px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }
         }
       }
     }
   </script>
   <style>
-    :root { color-scheme: dark; }
-    body { background: #050a06; color: #e5e7eb; }
-    .gradient-glow { background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(16,185,129,.25) 0%, transparent 70%); }
-    .card-glass { background: rgba(255,255,255,.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,.08); }
-    .code-snippet { background: #0d1117; border: 1px solid #21262d; }
-    .animate-delay-100 { animation-delay: .1s; }
-    .animate-delay-200 { animation-delay: .2s; }
-    .animate-delay-300 { animation-delay: .3s; }
-    .hero-glow { position: absolute; inset: 0; background: radial-gradient(circle at 50% 30%, rgba(16,185,129,.15) 0%, transparent 60%); pointer-events: none; }
-    .stat-card:hover { transform: translateY(-2px); transition: transform .25s ease; }
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      background: #050a06;
+      color: #e5e7eb;
+    }
+
+    .gradient-glow {
+      background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(16, 185, 129, .25) 0%, transparent 70%);
+    }
+
+    .card-glass {
+      background: rgba(255, 255, 255, .03);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, .08);
+    }
+
+    .code-snippet {
+      background: #0d1117;
+      border: 1px solid #21262d;
+    }
+
+    .animate-delay-100 {
+      animation-delay: .1s;
+    }
+
+    .animate-delay-200 {
+      animation-delay: .2s;
+    }
+
+    .animate-delay-300 {
+      animation-delay: .3s;
+    }
+
+    .hero-glow {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 30%, rgba(16, 185, 129, .15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      transition: transform .25s ease;
+    }
   </style>
 </head>
+
 <body class="font-sans antialiased">
 
-<!-- ── Gradient Background ───────────────────────────────── -->
-<div class="fixed inset-0 pointer-events-none overflow-hidden">
-  <div class="gradient-glow absolute inset-0"></div>
-  <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-900/10 rounded-full blur-3xl animate-pulse-slow"></div>
-  <div class="absolute bottom-1/3 right-1/4 w-64 h-64 bg-emerald-900/10 rounded-full blur-3xl animate-pulse-slow" style="animation-delay:2s"></div>
-</div>
-
-<!-- ── Navbar ─────────────────────────────────────────────── -->
-<nav class="fixed top-0 inset-x-0 z-50 border-b border-white/[.06]" style="background: rgba(5,10,6,.85); backdrop-filter: blur(20px);">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-    <a href="/" class="flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-brand-500/30">e</div>
-      <span class="font-bold text-white text-lg tracking-tight">eidosSpeech</span>
-      <span class="text-xs text-brand-400 font-medium border border-brand-500/30 bg-brand-500/10 rounded px-1.5 py-0.5">v2</span>
-    </a>
-    <div class="hidden md:flex items-center gap-6 text-sm text-gray-400">
-      <a href="/app" class="hover:text-white transition-colors">TTS App</a>
-      <a href="/api-docs" class="hover:text-white transition-colors">API Docs</a>
-      <a href="https://eidosstack.com" target="_blank" class="hover:text-white transition-colors">eidosStack</a>
-    </div>
-    <div class="flex items-center gap-3">
-      <a href="/app" id="nav-login-btn"
-         class="text-sm text-gray-300 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">
-        Sign In
-      </a>
-      <a href="/app#register"
-         class="text-sm font-medium bg-brand-500 hover:bg-brand-400 text-white px-4 py-1.5 rounded-lg transition-colors shadow-lg shadow-brand-500/20">
-        Get Free API Key
-      </a>
-    </div>
+  <!-- ── Gradient Background ───────────────────────────────── -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden">
+    <div class="gradient-glow absolute inset-0"></div>
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-900/10 rounded-full blur-3xl animate-pulse-slow"></div>
+    <div class="absolute bottom-1/3 right-1/4 w-64 h-64 bg-emerald-900/10 rounded-full blur-3xl animate-pulse-slow"
+      style="animation-delay:2s"></div>
   </div>
-</nav>
 
-<!-- ── Hero ───────────────────────────────────────────────── -->
-<section class="relative min-h-screen flex items-center pt-16">
-  <div class="hero-glow"></div>
-  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-    <div class="max-w-4xl mx-auto text-center">
-      <!-- Badge -->
-      <div class="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 rounded-full px-4 py-1.5 text-sm font-medium mb-6 animate-fade-in">
-        <span class="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse"></span>
-        Free · Open · No credit card required
+  <!-- ── Navbar ─────────────────────────────────────────────── -->
+  <nav class="fixed top-0 inset-x-0 z-50 border-b border-white/[.06]"
+    style="background: rgba(5,10,6,.85); backdrop-filter: blur(20px);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2.5">
+        <div
+          class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-brand-500/30">
+          e</div>
+        <span class="font-bold text-white text-lg tracking-tight">eidosSpeech</span>
+        <span
+          class="text-xs text-brand-400 font-medium border border-brand-500/30 bg-brand-500/10 rounded px-1.5 py-0.5">v2</span>
+      </a>
+      <div class="hidden md:flex items-center gap-6 text-sm text-gray-400">
+        <a href="/app" class="hover:text-white transition-colors">TTS App</a>
+        <a href="/api-docs" class="hover:text-white transition-colors">API Docs</a>
+        <a href="https://eidosstack.com" target="_blank" class="hover:text-white transition-colors">eidosStack</a>
       </div>
-
-      <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight mb-6 animate-slide-up">
-        Text-to-Speech
-        <br>
-        <span class="bg-gradient-to-r from-brand-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent">
-          for everyone.
-        </span>
-      </h1>
-
-      <p class="text-lg sm:text-xl text-gray-400 leading-relaxed max-w-2xl mx-auto mb-10 animate-slide-up animate-delay-100">
-        1,200+ voices · 75+ languages · Microsoft Edge TTS.<br>
-        Free API access — register once, use anywhere.
-      </p>
-
-      <div class="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up animate-delay-200">
-        <a href="/app" class="inline-flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-400 text-white font-semibold px-8 py-3.5 rounded-xl transition-all shadow-xl shadow-brand-500/25 hover:shadow-brand-500/40 hover:-translate-y-0.5">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Try it now — Free
+      <div class="flex items-center gap-3">
+        <a href="/app" id="nav-login-btn"
+          class="text-sm text-gray-300 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">
+          Sign In
         </a>
-        <a href="/api-docs" class="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-semibold px-8 py-3.5 rounded-xl border border-white/10 hover:border-white/20 transition-all hover:-translate-y-0.5">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-          View API Docs
+        <a href="/app#register"
+          class="text-sm font-medium bg-brand-500 hover:bg-brand-400 text-white px-4 py-1.5 rounded-lg transition-colors shadow-lg shadow-brand-500/20">
+          Get Free API Key
         </a>
       </div>
     </div>
+  </nav>
 
-    <!-- Hero Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mt-20 animate-slide-up animate-delay-300">
-      <div class="stat-card card-glass rounded-2xl p-5 text-center cursor-default">
-        <div class="text-3xl font-black text-brand-400 leading-none">1,200+</div>
-        <div class="text-xs text-gray-500 mt-1.5 uppercase tracking-widest">Voices</div>
-      </div>
-      <div class="stat-card card-glass rounded-2xl p-5 text-center cursor-default">
-        <div class="text-3xl font-black text-brand-400 leading-none">75+</div>
-        <div class="text-xs text-gray-500 mt-1.5 uppercase tracking-widest">Languages</div>
-      </div>
-      <div class="stat-card card-glass rounded-2xl p-5 text-center cursor-default">
-        <div class="text-3xl font-black text-brand-400 leading-none">30</div>
-        <div class="text-xs text-gray-500 mt-1.5 uppercase tracking-widest">Req/Day Free</div>
-      </div>
-      <div class="stat-card card-glass rounded-2xl p-5 text-center cursor-default">
-        <div class="text-3xl font-black text-brand-400 leading-none">100%</div>
-        <div class="text-xs text-gray-500 mt-1.5 uppercase tracking-widest">Free Forever</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── API Snippet ────────────────────────────────────────── -->
-<section class="relative py-24 border-t border-white/[.05]">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="max-w-3xl mx-auto text-center mb-12">
-      <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Simple. Powerful. Free.</h2>
-      <p class="text-gray-400">One endpoint. Returns MP3 audio directly. Works with any language or HTTP client.</p>
-    </div>
-
-    <div class="max-w-2xl mx-auto">
-      <div class="code-snippet rounded-2xl overflow-hidden shadow-2xl">
-        <!-- Header -->
-        <div class="flex items-center justify-between px-5 py-3 border-b border-white/5">
-          <div class="flex gap-1.5">
-            <span class="w-3 h-3 rounded-full bg-red-500/60"></span>
-            <span class="w-3 h-3 rounded-full bg-yellow-500/60"></span>
-            <span class="w-3 h-3 rounded-full bg-green-500/60"></span>
-          </div>
-          <span class="text-xs text-gray-500 font-mono">curl · bash</span>
-          <button id="copy-snippet" onclick="copySnippet()" class="text-xs text-gray-500 hover:text-brand-400 transition-colors font-medium">
-            Copy
-          </button>
+  <!-- ── Hero ───────────────────────────────────────────────── -->
+  <section class="relative min-h-screen flex items-center pt-16">
+    <div class="hero-glow"></div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <div class="max-w-4xl mx-auto text-center">
+        <!-- Badge -->
+        <div
+          class="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 rounded-full px-4 py-1.5 text-sm font-medium mb-6 animate-fade-in">
+          <span class="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse"></span>
+          Free · Open · No credit card required
         </div>
-        <!-- Code -->
-        <pre id="api-snippet" class="p-5 text-sm font-mono text-gray-300 leading-relaxed overflow-x-auto"><code><span class="text-gray-500"># Request</span>
+
+        <h1
+          class="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight mb-6 animate-slide-up">
+          Text-to-Speech
+          <br>
+          <span class="bg-gradient-to-r from-brand-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent">
+            for everyone.
+          </span>
+        </h1>
+
+        <p
+          class="text-lg sm:text-xl text-gray-400 leading-relaxed max-w-2xl mx-auto mb-10 animate-slide-up animate-delay-100">
+          1,200+ voices · 75+ languages · Microsoft Edge TTS.<br>
+          Free API access — register once, use anywhere.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up animate-delay-200">
+          <a href="/app"
+            class="inline-flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-400 text-white font-semibold px-8 py-3.5 rounded-xl transition-all shadow-xl shadow-brand-500/25 hover:shadow-brand-500/40 hover:-translate-y-0.5">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Try it now — Free
+          </a>
+          <a href="/api-docs"
+            class="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-semibold px-8 py-3.5 rounded-xl border border-white/10 hover:border-white/20 transition-all hover:-translate-y-0.5">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+            View API Docs
+          </a>
+        </div>
+      </div>
+
+      <!-- Hero Stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mt-20 animate-slide-up animate-delay-300">
+        <div class="stat-card card-glass rounded-2xl p-5 text-center cursor-default">
+          <div class="text-3xl font-black text-brand-400 leading-none">1,200+</div>
+          <div class="text-xs text-gray-500 mt-1.5 uppercase tracking-widest">Voices</div>
+        </div>
+        <div class="stat-card card-glass rounded-2xl p-5 text-center cursor-default">
+          <div class="text-3xl font-black text-brand-400 leading-none">75+</div>
+          <div class="text-xs text-gray-500 mt-1.5 uppercase tracking-widest">Languages</div>
+        </div>
+        <div class="stat-card card-glass rounded-2xl p-5 text-center cursor-default">
+          <div class="text-3xl font-black text-brand-400 leading-none">30</div>
+          <div class="text-xs text-gray-500 mt-1.5 uppercase tracking-widest">Req/Day Free</div>
+        </div>
+        <div class="stat-card card-glass rounded-2xl p-5 text-center cursor-default">
+          <div class="text-3xl font-black text-brand-400 leading-none">100%</div>
+          <div class="text-xs text-gray-500 mt-1.5 uppercase tracking-widest">Free Forever</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── API Snippet ────────────────────────────────────────── -->
+  <section class="border-t border-white/[.05]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="card-glass rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+          <div class="text-xs text-gray-600 uppercase tracking-widest mb-1">Part of</div>
+          <div class="flex items-center gap-3">
+            <!-- Logo -->
+            <div
+              class="w-10 h-10 bg-brand-500/20 rounded-xl flex items-center justify-center text-brand-400 font-bold text-lg">
+              e</div>
+            <div>
+              <div class="font-bold text-white">eidosStack</div>
+              <div class="text-xs text-gray-500">Free developer tools ecosystem</div>
+            </div>
+          </div>
+        </div>
+        <p class="text-sm text-gray-400 max-w-md">
+          eidosSpeech is part of the eidosStack ecosystem — free tools built for developers.
+          From OCR to AI APIs, all free, all open.
+        </p>
+        <a href="https://eidosstack.com" target="_blank"
+          class="flex-shrink-0 inline-flex items-center gap-2 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/20 hover:border-brand-500/40 px-5 py-2.5 rounded-xl text-sm font-medium transition-all">
+          Explore eidosStack →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── API Snippet ────────────────────────────────────────── -->
+  <section class="relative py-24 border-t border-white/[.05]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mx-auto text-center mb-12">
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Simple. Powerful. Free.</h2>
+        <p class="text-gray-400">One endpoint. Returns MP3 audio directly. Works with any language or HTTP client.</p>
+      </div>
+
+      <div class="max-w-2xl mx-auto">
+        <div class="code-snippet rounded-2xl overflow-hidden shadow-2xl">
+          <!-- Header -->
+          <div class="flex items-center justify-between px-5 py-3 border-b border-white/5">
+            <div class="flex gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-red-500/60"></span>
+              <span class="w-3 h-3 rounded-full bg-yellow-500/60"></span>
+              <span class="w-3 h-3 rounded-full bg-green-500/60"></span>
+            </div>
+            <span class="text-xs text-gray-500 font-mono">curl · bash</span>
+            <button id="copy-snippet" onclick="copySnippet()"
+              class="text-xs text-gray-500 hover:text-brand-400 transition-colors font-medium">
+              Copy
+            </button>
+          </div>
+          <!-- Code -->
+          <pre id="api-snippet" class="p-5 text-sm font-mono text-gray-300 leading-relaxed overflow-x-auto"><code><span class="text-gray-500"># Request</span>
 curl -X POST https://eidosspeech.xyz/api/v1/tts \
   -H <span class="text-brand-400">"X-API-Key: esk_your_key_here"</span> \
   -H <span class="text-brand-400">"Content-Type: application/json"</span> \
@@ -166,174 +256,180 @@ X-RateLimit-Remaining-Day: <span class="text-amber-400">29</span>
 X-RateLimit-Limit-Day: <span class="text-amber-400">30</span>
 X-RateLimit-Tier: <span class="text-brand-400">registered</span>
 Content-Type: <span class="text-brand-400">audio/mpeg</span></code></pre>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Features Grid ─────────────────────────────────────── -->
-<section class="relative py-24 border-t border-white/[.05]">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="max-w-3xl mx-auto text-center mb-16">
-      <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Everything you need</h2>
-      <p class="text-gray-400">Production-grade TTS API with robust features, no vendor lock-in.</p>
-    </div>
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-      <!-- Feature cards -->
-      <div class="card-glass rounded-2xl p-6 hover:border-brand-500/20 transition-colors">
-        <div class="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 text-brand-400 text-xl">🌍</div>
-        <h3 class="font-semibold text-white mb-2">75+ Languages</h3>
-        <p class="text-sm text-gray-400 leading-relaxed">Indonesian, English, Japanese, Korean, Arabic, Spanish, French, German, and many more. Full Unicode support.</p>
-      </div>
-      <div class="card-glass rounded-2xl p-6 hover:border-brand-500/20 transition-colors">
-        <div class="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 text-brand-400 text-xl">🎙️</div>
-        <h3 class="font-semibold text-white mb-2">1,200+ Neural Voices</h3>
-        <p class="text-sm text-gray-400 leading-relaxed">Microsoft Edge TTS neural voices with natural intonation. Male and female options per language.</p>
-      </div>
-      <div class="card-glass rounded-2xl p-6 hover:border-brand-500/20 transition-colors">
-        <div class="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 text-brand-400 text-xl">⚡</div>
-        <h3 class="font-semibold text-white mb-2">File Cache</h3>
-        <p class="text-sm text-gray-400 leading-relaxed">Identical requests return cached audio instantly. Doesn't count against your rate limit when cached.</p>
-      </div>
-      <div class="card-glass rounded-2xl p-6 hover:border-brand-500/20 transition-colors">
-        <div class="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 text-brand-400 text-xl">🔑</div>
-        <h3 class="font-semibold text-white mb-2">API Key Auth</h3>
-        <p class="text-sm text-gray-400 leading-relaxed">Single API key per account. Prefix: <code class="text-brand-400 font-mono text-xs">esk_</code>. Regenerate anytime from dashboard. JWT also supported.</p>
-      </div>
-      <div class="card-glass rounded-2xl p-6 hover:border-brand-500/20 transition-colors">
-        <div class="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 text-brand-400 text-xl">📊</div>
-        <h3 class="font-semibold text-white mb-2">Rate Limit Headers</h3>
-        <p class="text-sm text-gray-400 leading-relaxed">Every response includes <code class="text-brand-400 font-mono text-xs">X-RateLimit-*</code> headers. Know your remaining quota before hitting limits.</p>
-      </div>
-      <div class="card-glass rounded-2xl p-6 hover:border-brand-500/20 transition-colors">
-        <div class="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 text-brand-400 text-xl">🛡️</div>
-        <h3 class="font-semibold text-white mb-2">Abuse Protection</h3>
-        <p class="text-sm text-gray-400 leading-relaxed">IP-based rate limiting for anonymous users. Registration limits per IP. Admin blacklist for bad actors.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Pricing / Tiers ────────────────────────────────────── -->
-<section class="relative py-24 border-t border-white/[.05]">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="max-w-3xl mx-auto text-center mb-16">
-      <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Simple, transparent tiers</h2>
-      <p class="text-gray-400">No hidden fees. No credit card. Free forever for individual use.</p>
-    </div>
-    <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-      <!-- Anonymous -->
-      <div class="card-glass rounded-2xl p-8 border border-white/[.06]">
-        <div class="text-sm font-medium text-gray-500 uppercase tracking-widest mb-3">Anonymous</div>
-        <div class="text-4xl font-black text-white mb-1">Free</div>
-        <div class="text-gray-500 text-sm mb-6">No registration needed</div>
-        <ul class="space-y-3 text-sm text-gray-400 mb-8">
-          <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> 5 requests per day</li>
-          <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> 500 characters per request</li>
-          <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> 1 request per minute</li>
-          <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> Web UI only</li>
-          <li class="flex items-center gap-2"><span class="text-gray-600">✕</span> <span class="text-gray-600">No API access</span></li>
-          <li class="flex items-center gap-2"><span class="text-gray-600">✕</span> <span class="text-gray-600">No dashboard</span></li>
-        </ul>
-        <a href="/app" class="block w-full text-center py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium transition-colors border border-white/10">
-          Use Web UI
-        </a>
-      </div>
-      <!-- Registered (Free) -->
-      <div class="relative rounded-2xl p-8 border border-brand-500/40 bg-brand-500/5">
-        <div class="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span class="bg-brand-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-brand-500/30">RECOMMENDED</span>
         </div>
-        <div class="text-sm font-medium text-brand-400 uppercase tracking-widest mb-3">Registered</div>
-        <div class="text-4xl font-black text-white mb-1">Free</div>
-        <div class="text-gray-500 text-sm mb-6">Register with email</div>
-        <ul class="space-y-3 text-sm text-gray-300 mb-8">
-          <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> <strong>30</strong> requests per day</li>
-          <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> <strong>1,000</strong> characters per request</li>
-          <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> 3 requests per minute</li>
-          <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> <strong>API key access</strong></li>
-          <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> Dashboard + usage stats</li>
-          <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> Use from any app/script</li>
-        </ul>
-        <a href="/app#register" class="block w-full text-center py-3 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold transition-all shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40">
-          Register Free →
-        </a>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── eidosStack Sponsor Banner ──────────────────────────── -->
-<section class="border-t border-white/[.05]">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="card-glass rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-      <div>
-        <div class="text-xs text-gray-600 uppercase tracking-widest mb-1">Part of</div>
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-brand-500/20 rounded-xl flex items-center justify-center text-brand-400 font-bold text-lg">e</div>
-          <div>
-            <div class="font-bold text-white">eidosStack</div>
-            <div class="text-xs text-gray-500">Free developer tools ecosystem</div>
+  <!-- ── Features Grid ─────────────────────────────────────── -->
+  <section class="relative py-24 border-t border-white/[.05]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mx-auto text-center mb-16">
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Everything you need</h2>
+        <p class="text-gray-400">Production-grade TTS API with robust features, no vendor lock-in.</p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Feature cards -->
+        <div class="card-glass rounded-2xl p-6 hover:border-brand-500/20 transition-colors">
+          <div
+            class="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 text-brand-400 text-xl">🌍
           </div>
+          <h3 class="font-semibold text-white mb-2">75+ Languages</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Indonesian, English, Japanese, Korean, Arabic, Spanish,
+            French, German, and many more. Full Unicode support.</p>
+        </div>
+        <div class="card-glass rounded-2xl p-6 hover:border-brand-500/20 transition-colors">
+          <div
+            class="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 text-brand-400 text-xl">
+            🎙️</div>
+          <h3 class="font-semibold text-white mb-2">1,200+ Neural Voices</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Microsoft Edge TTS neural voices with natural intonation.
+            Male and female options per language.</p>
+        </div>
+        <div class="card-glass rounded-2xl p-6 hover:border-brand-500/20 transition-colors">
+          <div
+            class="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 text-brand-400 text-xl">⚡
+          </div>
+          <h3 class="font-semibold text-white mb-2">File Cache</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Identical requests return cached audio instantly. Doesn't
+            count against your rate limit when cached.</p>
+        </div>
+        <div class="card-glass rounded-2xl p-6 hover:border-brand-500/20 transition-colors">
+          <div
+            class="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 text-brand-400 text-xl">🔑
+          </div>
+          <h3 class="font-semibold text-white mb-2">API Key Auth</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Single API key per account. Prefix: <code
+              class="text-brand-400 font-mono text-xs">esk_</code>. Regenerate anytime from dashboard. JWT also
+            supported.</p>
+        </div>
+        <div class="card-glass rounded-2xl p-6 hover:border-brand-500/20 transition-colors">
+          <div
+            class="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 text-brand-400 text-xl">📊
+          </div>
+          <h3 class="font-semibold text-white mb-2">Rate Limit Headers</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Every response includes <code
+              class="text-brand-400 font-mono text-xs">X-RateLimit-*</code> headers. Know your remaining quota before
+            hitting limits.</p>
+        </div>
+        <div class="card-glass rounded-2xl p-6 hover:border-brand-500/20 transition-colors">
+          <div
+            class="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4 text-brand-400 text-xl">
+            🛡️</div>
+          <h3 class="font-semibold text-white mb-2">Abuse Protection</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">IP-based rate limiting for anonymous users. Registration
+            limits per IP. Admin blacklist for bad actors.</p>
         </div>
       </div>
-      <p class="text-sm text-gray-400 max-w-md">
-        eidosSpeech is part of the eidosStack ecosystem — free tools built for developers.
-        From OCR to AI APIs, all free, all open.
-      </p>
-      <a href="https://eidosstack.com" target="_blank"
-         class="flex-shrink-0 inline-flex items-center gap-2 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/20 hover:border-brand-500/40 px-5 py-2.5 rounded-xl text-sm font-medium transition-all">
-        Explore eidosStack →
-      </a>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── Footer ─────────────────────────────────────────────── -->
-<footer class="border-t border-white/[.05] py-12">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-2">
-        <div class="w-6 h-6 rounded-md bg-brand-500 flex items-center justify-center text-white font-bold text-xs">e</div>
-        <span class="font-semibold text-white text-sm">eidosSpeech v2</span>
+  <!-- ── Pricing / Tiers ────────────────────────────────────── -->
+  <section class="relative py-24 border-t border-white/[.05]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mx-auto text-center mb-16">
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Simple, transparent tiers</h2>
+        <p class="text-gray-400">No hidden fees. No credit card. Free forever for individual use.</p>
       </div>
-      <div class="flex items-center gap-6 text-sm text-gray-500">
-        <a href="/app" class="hover:text-gray-300 transition-colors">App</a>
-        <a href="/api-docs" class="hover:text-gray-300 transition-colors">API Docs</a>
-        <a href="/tos" class="hover:text-gray-300 transition-colors">Terms of Service</a>
-        <a href="https://eidosstack.com" target="_blank" class="hover:text-gray-300 transition-colors">eidosStack</a>
+      <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <!-- Anonymous -->
+        <div class="card-glass rounded-2xl p-8 border border-white/[.06]">
+          <div class="text-sm font-medium text-gray-500 uppercase tracking-widest mb-3">Anonymous</div>
+          <div class="text-4xl font-black text-white mb-1">Free</div>
+          <div class="text-gray-500 text-sm mb-6">No registration needed</div>
+          <ul class="space-y-3 text-sm text-gray-400 mb-8">
+            <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> 5 requests per day</li>
+            <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> 500 characters per request</li>
+            <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> 1 request per minute</li>
+            <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> Web UI only</li>
+            <li class="flex items-center gap-2"><span class="text-gray-600">✕</span> <span class="text-gray-600">No API
+                access</span></li>
+            <li class="flex items-center gap-2"><span class="text-gray-600">✕</span> <span class="text-gray-600">No
+                dashboard</span></li>
+          </ul>
+          <a href="/app"
+            class="block w-full text-center py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium transition-colors border border-white/10">
+            Use Web UI
+          </a>
+        </div>
+        <!-- Registered (Free) -->
+        <div class="relative rounded-2xl p-8 border border-brand-500/40 bg-brand-500/5">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+            <span
+              class="bg-brand-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-brand-500/30">RECOMMENDED</span>
+          </div>
+          <div class="text-sm font-medium text-brand-400 uppercase tracking-widest mb-3">Registered</div>
+          <div class="text-4xl font-black text-white mb-1">Free</div>
+          <div class="text-gray-500 text-sm mb-6">Register with email</div>
+          <ul class="space-y-3 text-sm text-gray-300 mb-8">
+            <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> <strong>30</strong> requests per
+              day</li>
+            <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> <strong>2,000</strong> characters
+              per request</li>
+            <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> 3 requests per minute</li>
+            <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> <strong>API key access</strong>
+            </li>
+            <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> Dashboard + usage stats</li>
+            <li class="flex items-center gap-2"><span class="text-brand-400">✓</span> Use from any app/script</li>
+          </ul>
+          <a href="/app#register"
+            class="block w-full text-center py-3 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-semibold transition-all shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40">
+            Register Free →
+          </a>
+        </div>
       </div>
-      <div class="text-xs text-gray-600">© 2026 eidosSpeech. Free to use.</div>
     </div>
-  </div>
-</footer>
+  </section>
 
-<script src="/static/js/toast.js"></script>
-<script src="/static/js/auth.js"></script>
-<script>
-  // Restore nav button based on auth state
-  AuthStore.init().then(() => {
-    if (AuthStore.isAuthenticated()) {
-      const btn = document.getElementById('nav-login-btn');
-      if (btn) {
-        btn.textContent = 'Dashboard';
-        btn.href = '/dashboard';
+
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer class="border-t border-white/[.05] py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded-md bg-brand-500 flex items-center justify-center text-white font-bold text-xs">e
+          </div>
+          <span class="font-semibold text-white text-sm">eidosSpeech v2</span>
+        </div>
+        <div class="flex items-center gap-6 text-sm text-gray-500">
+          <a href="/app" class="hover:text-gray-300 transition-colors">App</a>
+          <a href="/api-docs" class="hover:text-gray-300 transition-colors">API Docs</a>
+          <a href="/tos" class="hover:text-gray-300 transition-colors">Terms of Service</a>
+          <a href="https://eidosstack.com" target="_blank" class="hover:text-gray-300 transition-colors">eidosStack</a>
+        </div>
+        <div class="text-xs text-gray-600">© 2026 eidosSpeech. Free to use.</div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/js/toast.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    // Restore nav button based on auth state
+    AuthStore.init().then(() => {
+      if (AuthStore.isAuthenticated()) {
+        const btn = document.getElementById('nav-login-btn');
+        if (btn) {
+          btn.textContent = 'Dashboard';
+          btn.href = '/dashboard';
+        }
       }
-    }
-  });
+    });
 
-  async function copySnippet() {
-    const code = `curl -X POST https://eidosspeech.xyz/api/v1/tts \\
+    async function copySnippet() {
+      const code = `curl -X POST https://eidosspeech.xyz/api/v1/tts \\
   -H "X-API-Key: esk_your_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{"text":"Halo, selamat datang!","voice":"id-ID-GadisNeural"}' \\
   --output audio.mp3`;
-    try {
-      await navigator.clipboard.writeText(code);
-      document.getElementById('copy-snippet').textContent = 'Copied!';
-      setTimeout(() => { document.getElementById('copy-snippet').textContent = 'Copy'; }, 2000);
-    } catch (e) {}
-  }
-</script>
+      try {
+        await navigator.clipboard.writeText(code);
+        document.getElementById('copy-snippet').textContent = 'Copied!';
+        setTimeout(() => { document.getElementById('copy-snippet').textContent = 'Copy'; }, 2000);
+      } catch (e) { }
+    }
+  </script>
 </body>
+
 </html>

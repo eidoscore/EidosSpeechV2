@@ -135,6 +135,7 @@
 
                 <!-- Overview Tab -->
                 <div id="tab-overview" class="space-y-6">
+                    <!-- Stats Grid -->
                     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
                         <div class="card rounded-xl p-4 text-center">
                             <div id="s-total-users" class="text-2xl font-black text-emerald-400">—</div>
@@ -157,9 +158,114 @@
                             <div class="text-xs text-gray-500 mt-1">Req Yesterday</div>
                         </div>
                     </div>
+
+                    <!-- Additional Stats Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div class="card rounded-xl p-5">
+                            <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                                <span>👥</span> User Activity
+                            </h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Unverified</span>
+                                    <span id="s-unverified" class="text-amber-400 font-mono">—</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Banned</span>
+                                    <span id="s-banned" class="text-red-400 font-mono">—</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Verification Rate</span>
+                                    <span id="s-verify-rate" class="text-emerald-400 font-mono">—</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-5">
+                            <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                                <span>📊</span> API Usage
+                            </h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Avg Req/Day</span>
+                                    <span id="s-avg-req" class="text-emerald-400 font-mono">—</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Peak Day</span>
+                                    <span id="s-peak-req" class="text-emerald-400 font-mono">—</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Growth</span>
+                                    <span id="s-growth" class="font-mono">—</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-5">
+                            <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                                <span>💾</span> Cache Status
+                            </h3>
+                            <div id="s-cache" class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Files</span>
+                                    <span id="s-cache-files" class="text-white font-mono">—</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Size</span>
+                                    <span id="s-cache-size" class="text-white font-mono">—</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Usage</span>
+                                    <span id="s-cache-percent" class="text-emerald-400 font-mono">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
                     <div class="card rounded-xl p-5">
-                        <h3 class="text-sm font-semibold text-white mb-3">Cache</h3>
-                        <div id="s-cache" class="text-sm text-gray-400">—</div>
+                        <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                            <span>⚡</span> Quick Actions
+                        </h3>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="showTab('users', document.querySelectorAll('.nav-btn')[1])"
+                                class="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-sm rounded-lg transition-colors border border-emerald-500/20">
+                                View All Users
+                            </button>
+                            <button onclick="showTab('usage', document.querySelectorAll('.nav-btn')[2])"
+                                class="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-sm rounded-lg transition-colors border border-blue-500/20">
+                                View Usage Analytics
+                            </button>
+                            <button onclick="showTab('blacklist', document.querySelectorAll('.nav-btn')[3])"
+                                class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm rounded-lg transition-colors border border-red-500/20">
+                                Manage Blacklist
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- System Info -->
+                    <div class="card rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                            <span>ℹ️</span> System Information
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <div class="text-gray-500 mb-1">Character Limits</div>
+                                <div class="text-gray-400 space-y-1 text-xs">
+                                    <div>• Anonymous (Web UI): 500 chars/request</div>
+                                    <div>• Registered (API): 1,000 chars/request</div>
+                                    <div>• Registered (Web UI): 2,000 chars/request</div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-gray-500 mb-1">Rate Limits</div>
+                                <div class="text-gray-400 space-y-1 text-xs">
+                                    <div>• Anonymous: 5 requests/day</div>
+                                    <div>• Registered: 30 requests/day</div>
+                                    <div>• Resets daily at midnight UTC</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -205,6 +311,22 @@
 
                 <!-- Usage Tab -->
                 <div id="tab-usage" class="hidden space-y-4">
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="card rounded-xl p-4">
+                            <div class="text-xs text-gray-500 mb-1">Total Requests</div>
+                            <div id="usage-total-req" class="text-2xl font-black text-emerald-400">—</div>
+                        </div>
+                        <div class="card rounded-xl p-4">
+                            <div class="text-xs text-gray-500 mb-1">Total Characters</div>
+                            <div id="usage-total-chars" class="text-2xl font-black text-blue-400">—</div>
+                        </div>
+                        <div class="card rounded-xl p-4">
+                            <div class="text-xs text-gray-500 mb-1">Avg Requests/Day</div>
+                            <div id="usage-avg-req" class="text-2xl font-black text-purple-400">—</div>
+                        </div>
+                    </div>
+
                     <div class="flex gap-2 items-center">
                         <label class="text-xs text-gray-500">Last</label>
                         <select id="usage-days" onchange="loadUsage()"
@@ -335,17 +457,42 @@
             try {
                 const resp = await fetch('/api/v1/admin/stats', { headers: apiHeaders() });
                 const d = await resp.json();
+                
+                // Main stats
                 document.getElementById('s-total-users').textContent = d.total_users;
                 document.getElementById('s-verified').textContent = d.verified_users;
                 document.getElementById('s-api-keys').textContent = d.active_api_keys;
                 document.getElementById('s-req-today').textContent = d.requests_today;
                 document.getElementById('s-req-yday').textContent = d.requests_yesterday;
-                document.getElementById('s-cache').innerHTML = `
-        <span class="text-white font-mono">${d.cache.files}</span> files ·
-        <span class="text-white font-mono">${d.cache.size_mb} MB</span> used /
-        <span class="text-gray-500">${d.cache.max_size_gb} GB max</span>
-      `;
-            } catch (e) { showToast('Failed to load stats.', 'error'); }
+                
+                // User activity stats
+                const unverified = d.total_users - d.verified_users;
+                const bannedUsers = 0; // TODO: Add banned count to API
+                const verifyRate = d.total_users > 0 ? Math.round((d.verified_users / d.total_users) * 100) : 0;
+                
+                document.getElementById('s-unverified').textContent = unverified;
+                document.getElementById('s-banned').textContent = bannedUsers;
+                document.getElementById('s-verify-rate').textContent = `${verifyRate}%`;
+                
+                // API usage stats
+                const avgReq = d.requests_yesterday > 0 ? Math.round((d.requests_today + d.requests_yesterday) / 2) : d.requests_today;
+                const peakReq = Math.max(d.requests_today, d.requests_yesterday);
+                const growth = d.requests_yesterday > 0 ? Math.round(((d.requests_today - d.requests_yesterday) / d.requests_yesterday) * 100) : 0;
+                const growthEl = document.getElementById('s-growth');
+                
+                document.getElementById('s-avg-req').textContent = avgReq.toLocaleString();
+                document.getElementById('s-peak-req').textContent = peakReq.toLocaleString();
+                growthEl.textContent = `${growth > 0 ? '+' : ''}${growth}%`;
+                growthEl.className = `font-mono ${growth > 0 ? 'text-emerald-400' : growth < 0 ? 'text-red-400' : 'text-gray-400'}`;
+                
+                // Cache stats
+                const cachePercent = d.cache.max_size_gb > 0 ? Math.round((d.cache.size_mb / (d.cache.max_size_gb * 1024)) * 100) : 0;
+                document.getElementById('s-cache-files').textContent = d.cache.files;
+                document.getElementById('s-cache-size').textContent = `${d.cache.size_mb} MB`;
+                document.getElementById('s-cache-percent').textContent = `${cachePercent}%`;
+            } catch (e) { 
+                showToast('Failed to load stats.', 'error'); 
+            }
         }
 
         async function loadUsers() {
@@ -355,24 +502,43 @@
                 const d = await resp.json();
                 document.getElementById('users-total').textContent = `${d.total} users`;
 
-                document.getElementById('users-tbody').innerHTML = d.users.map(u => `
-        <tr class="border-b border-white/[.03] hover:bg-white/[.02] transition-colors">
-          <td class="px-4 py-3">
-            <div class="text-sm text-gray-300">${u.email}</div>
-            <div class="text-xs text-gray-600">${u.full_name || ''}</div>
-          </td>
-          <td class="px-4 py-3">
-            <span class="${u.is_active ? 'text-emerald-400' : 'text-red-400'} text-xs">${u.is_active ? (u.is_verified ? 'Active' : 'Unverified') : 'Banned'}</span>
-          </td>
-          <td class="px-4 py-3 font-mono text-xs text-gray-400">${u.usage_today}</td>
-          <td class="px-4 py-3 text-xs text-gray-500">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
-          <td class="px-4 py-3 text-right space-x-2">
-            ${u.is_active ? `<button onclick="banUser('${u.uuid}','${u.email}')" class="text-xs text-amber-400 hover:text-amber-300 transition-colors">Ban</button>` : '<span class="text-xs text-gray-600">Banned</span>'}
-            <button onclick="deleteUser('${u.uuid}','${u.email}')" class="text-xs text-red-400 hover:text-red-300 transition-colors">Delete</button>
-          </td>
-        </tr>
-      `).join('');
-            } catch (e) { showToast('Failed to load users.', 'error'); }
+                if (d.users.length === 0) {
+                    document.getElementById('users-tbody').innerHTML = `
+                        <tr>
+                            <td colspan="5" class="py-12 text-center">
+                                <div class="text-gray-600 mb-2">👥</div>
+                                <div class="text-sm text-gray-500 mb-1">${search ? 'No users found' : 'No users yet'}</div>
+                                <div class="text-xs text-gray-600">${search ? 'Try a different search term' : 'Users will appear here once they register'}</div>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    document.getElementById('users-tbody').innerHTML = d.users.map(u => `
+                        <tr class="border-b border-white/[.03] hover:bg-white/[.02] transition-colors">
+                          <td class="px-4 py-3">
+                            <div class="text-sm text-gray-300">${u.email}</div>
+                            <div class="text-xs text-gray-600">${u.full_name || ''}</div>
+                          </td>
+                          <td class="px-4 py-3">
+                            <span class="${u.is_active ? 'text-emerald-400' : 'text-red-400'} text-xs">${u.is_active ? (u.is_verified ? 'Active' : 'Unverified') : 'Banned'}</span>
+                          </td>
+                          <td class="px-4 py-3 font-mono text-xs text-gray-400">${u.usage_today}</td>
+                          <td class="px-4 py-3 text-xs text-gray-500">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                          <td class="px-4 py-3 text-right space-x-2">
+                            ${u.is_active ? `<button onclick="banUser('${u.uuid}','${u.email}')" class="text-xs text-amber-400 hover:text-amber-300 transition-colors">Ban</button>` : '<span class="text-xs text-gray-600">Banned</span>'}
+                            <button onclick="deleteUser('${u.uuid}','${u.email}')" class="text-xs text-red-400 hover:text-red-300 transition-colors">Delete</button>
+                          </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) { 
+                showToast('Failed to load users.', 'error'); 
+                document.getElementById('users-tbody').innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-8 text-center text-red-400 text-sm">Failed to load users</td>
+                    </tr>
+                `;
+            }
         }
 
         async function banUser(uuid, email) {
@@ -410,18 +576,50 @@
         function nextPage() { _usersPage++; loadUsers(); }
 
         async function loadUsage() {
-            const days = document.getElementById('usage-days').value;
-            const resp = await fetch(`/api/v1/admin/usage?days=${days}`, { headers: apiHeaders() });
-            const d = await resp.json();
-            const rows = [...d.days].reverse();
-            document.getElementById('usage-tbody').innerHTML = rows.map(r => `
-      <tr class="border-b border-white/[.03]">
-        <td class="px-4 py-3 font-mono text-xs text-gray-300">${r.date}</td>
-        <td class="px-4 py-3 font-mono text-xs text-gray-300">${r.requests.toLocaleString()}</td>
-        <td class="px-4 py-3 font-mono text-xs text-gray-400">${r.chars.toLocaleString()}</td>
-        <td class="px-4 py-3 font-mono text-xs text-gray-500">${r.unique_ips}</td>
-      </tr>
-    `).join('');
+            try {
+                const days = document.getElementById('usage-days').value;
+                const resp = await fetch(`/api/v1/admin/usage?days=${days}`, { headers: apiHeaders() });
+                const d = await resp.json();
+                const rows = [...d.days].reverse();
+                
+                // Calculate summary stats
+                const totalReq = rows.reduce((sum, r) => sum + r.requests, 0);
+                const totalChars = rows.reduce((sum, r) => sum + r.chars, 0);
+                const avgReq = rows.length > 0 ? Math.round(totalReq / rows.length) : 0;
+                
+                document.getElementById('usage-total-req').textContent = totalReq.toLocaleString();
+                document.getElementById('usage-total-chars').textContent = totalChars.toLocaleString();
+                document.getElementById('usage-avg-req').textContent = avgReq.toLocaleString();
+                
+                // Populate table
+                if (rows.length === 0 || totalReq === 0) {
+                    document.getElementById('usage-tbody').innerHTML = `
+                        <tr>
+                            <td colspan="4" class="py-12 text-center">
+                                <div class="text-gray-600 mb-2">📊</div>
+                                <div class="text-sm text-gray-500 mb-1">No usage data yet</div>
+                                <div class="text-xs text-gray-600">Usage statistics will appear here once users start making requests</div>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    document.getElementById('usage-tbody').innerHTML = rows.map(r => `
+                        <tr class="border-b border-white/[.03] hover:bg-white/[.02] transition-colors">
+                            <td class="px-4 py-3 font-mono text-xs text-gray-300">${r.date}</td>
+                            <td class="px-4 py-3 font-mono text-xs text-gray-300">${r.requests.toLocaleString()}</td>
+                            <td class="px-4 py-3 font-mono text-xs text-gray-400">${r.chars.toLocaleString()}</td>
+                            <td class="px-4 py-3 font-mono text-xs text-gray-500">${r.unique_ips}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {
+                showToast('Failed to load usage data.', 'error');
+                document.getElementById('usage-tbody').innerHTML = `
+                    <tr>
+                        <td colspan="4" class="py-8 text-center text-red-400 text-sm">Failed to load usage data</td>
+                    </tr>
+                `;
+            }
         }
 
         async function loadBlacklist() {

@@ -1043,11 +1043,14 @@
                 // Update top pages
                 const pagesHtml = d.top_pages.length > 0 ? d.top_pages.map((p, i) => `
                     <div class="flex items-center justify-between py-2 border-b border-white/[.03]">
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs text-gray-600 font-mono w-6">#${i + 1}</span>
-                            <span class="text-sm text-gray-300 font-mono truncate">${p.path}</span>
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <span class="text-xs text-gray-600 font-mono w-6 flex-shrink-0">#${i + 1}</span>
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <span class="text-sm text-gray-300 truncate">${p.path_name || p.path}</span>
+                                ${p.path_name && p.path !== p.path_name ? `<span class="text-xs text-gray-600 font-mono truncate">${p.path}</span>` : ''}
+                            </div>
                         </div>
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-4 flex-shrink-0">
                             <span class="text-xs text-gray-500">${p.visitors} visitors</span>
                             <span class="text-sm text-blue-400 font-mono">${p.views}</span>
                         </div>

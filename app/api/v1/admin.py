@@ -635,7 +635,8 @@ async def admin_analytics(
         )
         .where(
             PageView.date >= today - timedelta(days=30),
-            PageView.country != None
+            PageView.country != None,
+            PageView.country != ''  # Exclude empty strings
         )
         .group_by(PageView.country)
         .order_by(desc("views"))
@@ -643,14 +644,14 @@ async def admin_analytics(
     )
     countries = [
         {
-            "country": r.country,
+            "country": r.country or "Unknown",
             "views": r.views,
             "visitors": r.visitors,
         }
         for r in country_result.all()
     ]
     
-    # Top pages (last 30 days)
+    # Top pages (last 30 days) with friendly names
     page_result = await db.execute(
         select(
             PageView.path,
@@ -662,9 +663,25 @@ async def admin_analytics(
         .order_by(desc("views"))
         .limit(10)
     )
+    
+    # Map paths to friendly names
+    path_names = {
+        "/": "Homepage",
+        "/app": "TTS App",
+        "/dashboard": "User Dashboard",
+        "/admin": "Admin Panel",
+        "/api-docs": "API Documentation",
+        "/tos": "Terms of Service",
+        "/privacy": "Privacy Policy",
+        "/blog": "Blog",
+        "/verify-email": "Email Verification",
+        "/reset-password": "Password Reset",
+    }
+    
     pages = [
         {
             "path": r.path,
+            "path_name": path_names.get(r.path, r.path),  # Use friendly name or original path
             "views": r.views,
             "visitors": r.visitors,
         }

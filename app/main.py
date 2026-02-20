@@ -286,6 +286,19 @@ async def icon_png():
     return JSONResponse({}, status_code=404)
 
 
+@app.get("/og-image.png", include_in_schema=False)
+async def og_image():
+    """Serve OG image for social media sharing"""
+    path = STATIC_DIR / "og-image.png"
+    if path.exists():
+        return FileResponse(str(path), media_type="image/png")
+    # Fallback to icon if og-image doesn't exist yet
+    fallback = STATIC_DIR / "icon.png"
+    if fallback.exists():
+        return FileResponse(str(fallback), media_type="image/png")
+    return JSONResponse({}, status_code=404)
+
+
 @app.get("/robots.txt", include_in_schema=False)
 async def robots_txt():
     """Serve robots.txt for SEO"""

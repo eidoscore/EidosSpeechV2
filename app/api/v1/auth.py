@@ -436,7 +436,8 @@ async def get_me(
                 DailyUsage.date == today,
             )
         )
-        usage_row = result.scalar_one_or_none()
+        # Use scalars().first() to handle potential duplicates gracefully
+        usage_row = result.scalars().first()
     else:
         usage_row = None
 

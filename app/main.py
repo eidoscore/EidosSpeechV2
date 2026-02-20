@@ -249,6 +249,7 @@ class AnalyticsMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         
         # Only track successful GET requests to HTML pages
+        # Exclude: API, static files, SEO files, healthchecks, monitoring
         if (
             request.method == "GET" 
             and response.status_code == 200
@@ -257,6 +258,9 @@ class AnalyticsMiddleware(BaseHTTPMiddleware):
             and not request.url.path.startswith("/favicon")
             and not request.url.path.startswith("/robots")
             and not request.url.path.startswith("/sitemap")
+            and not request.url.path.startswith("/health")  # Healthcheck endpoints
+            and not request.url.path.startswith("/_")  # Internal/monitoring endpoints
+            and request.url.path not in ["/icon.png", "/og-image.png"]  # Image assets
         ):
             # Track asynchronously without blocking response
             asyncio.create_task(self._track_page_view(request))

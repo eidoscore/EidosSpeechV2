@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+aiosqlite:///./data/db/eidosspeech.db"
 
     # ── JWT / Auth ────────────────────────────────────────────
-    secret_key: str = "change-me-in-production-min-64-bytes"
+    secret_key: str = ""  # MUST be set via EIDOS_SECRET_KEY environment variable
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 7
@@ -60,9 +60,15 @@ class Settings(BaseSettings):
     anon_req_per_min: int = 1
 
     # ── Rate Limits — Registered (Free) ──────────────────────
-    free_char_limit: int = 2000
-    free_req_per_day: int = 30
-    free_req_per_min: int = 3
+    # API calls (via X-API-Key from external apps)
+    free_api_char_limit: int = 1000
+    free_api_req_per_day: int = 30
+    free_api_req_per_min: int = 3
+    
+    # Web UI calls (via JWT from our website)
+    free_webui_char_limit: int = 2000
+    free_webui_req_per_day: int = 30
+    free_webui_req_per_min: int = 3
 
     # ── Proxy (comma-separated, optional) ────────────────────
     proxies: str = ""  # empty = no proxy, "http://p1,http://p2" = round-robin
@@ -70,6 +76,8 @@ class Settings(BaseSettings):
     # ── TTS (from v1) ─────────────────────────────────────────
     default_voice: str = "id-ID-GadisNeural"
     max_concurrent: int = 3
+    tts_max_retries: int = 3
+    tts_retry_delay: float = 1.0
 
     # ── Cache (from v1) ───────────────────────────────────────
     cache_dir: str = "./data/cache"
@@ -82,7 +90,7 @@ class Settings(BaseSettings):
     adsense_slot_below: str = ""
 
     # ── Admin ─────────────────────────────────────────────────
-    admin_key: str = "change-me-admin-key"
+    admin_key: str = ""  # MUST be set via EIDOS_ADMIN_KEY environment variable
 
     # ── Helpers ───────────────────────────────────────────────
 
@@ -100,11 +108,17 @@ class Settings(BaseSettings):
         """
         errors = []
 
-        if self.secret_key == "change-me-in-production-min-64-bytes":
-            errors.append("EIDOS_SECRET_KEY must be changed from default value")
+        # SECRET_KEY validation - must be set and at least 64 characters
+        if not self.secret_key:
+            errors.append("EIDOS_SECRET_KEY must be set in environment variables")
+        elif len(self.secret_key) < 64:
+            errors.append("EIDOS_SECRET_KEY must be at least 64 characters long")
 
-        if self.admin_key == "change-me-admin-key":
-            errors.append("EIDOS_ADMIN_KEY must be changed from default value")
+        # ADMIN_KEY validation - must be set and at least 32 characters
+        if not self.admin_key:
+            errors.append("EIDOS_ADMIN_KEY must be set in environment variables")
+        elif len(self.admin_key) < 32:
+            errors.append("EIDOS_ADMIN_KEY must be at least 32 characters long")
 
         if not self.smtp_host and not self.resend_api_key:
             errors.append(

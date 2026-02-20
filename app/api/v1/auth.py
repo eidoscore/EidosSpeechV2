@@ -92,6 +92,16 @@ async def verify_turnstile(token: str, ip: str = None) -> bool:
         return False
 
 
+# ── GET /turnstile-config ──────────────────────────────────────────────────────
+@router.get("/turnstile-config")
+async def get_turnstile_config():
+    """Get Turnstile configuration for frontend"""
+    return {
+        "enabled": settings.turnstile_enabled,
+        "sitekey": settings.turnstile_site_key if settings.turnstile_enabled else None,
+    }
+
+
 # ── POST /register ─────────────────────────────────────────────────────────────
 @router.post("/register", status_code=201, response_model=MessageResponse)
 async def register(
@@ -224,7 +234,12 @@ async def verify_email(
             "api_key": api_key_str,
             "is_verified": user.is_verified,
             "created_at": user.created_at,
-            "usage": {"requests": 0, "chars": 0, "requests_limit": settings.free_req_per_day, "chars_limit": settings.free_char_limit}
+            "usage": {
+                "requests": 0, 
+                "chars": 0, 
+                "requests_limit": settings.free_webui_req_per_day, 
+                "chars_limit": settings.free_webui_char_limit  # 2000 for Web UI
+            }
         },
     }
 
@@ -251,19 +266,64 @@ async def login(
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
-    if not user or not verify_password(body.password, user.password_hash):
-        logger.warning(f"AUTH_FAIL email={email} ip={ip} reason=invalid_credentials")
+    # Check user exists and is active BEFORE password verification
+    # This prevents timing attacks and email enumeration
+    if not user:
+        # Log failed attempt
+        from app.core.audit import log_login_attempt
+        user_agent = request.headers.get("user-agent")
+        await log_login_attempt(db, email, ip, False, user_agent)
+        await db.commit()
+        
+        logger.warning(f"AUTH_FAIL email={email} ip={ip} reason=user_not_found")
+        raise AuthenticationError("Invalid email or password")
+    
+    if not user.is_active:
+        from app.core.audit import log_login_attempt
+        user_agent = request.headers.get("user-agent")
+        await log_login_attempt(db, email, ip, False, user_agent)
+        await db.commit()
+        
+        logger.warning(f"AUTH_FAIL email={email} ip={ip} reason=account_banned")
+        raise AuthenticationError("Invalid email or password")  # Generic message
+    
+    if not user.is_verified:
+        from app.core.audit import log_login_attempt
+        user_agent = request.headers.get("user-agent")
+        await log_login_attempt(db, email, ip, False, user_agent)
+        await db.commit()
+        
+        logger.warning(f"AUTH_FAIL email={email} ip={ip} reason=not_verified")
+        raise AuthenticationError("Invalid email or password")  # Generic message
+
+    # Now verify password
+    if not verify_password(body.password, user.password_hash):
+        from app.core.audit import log_login_attempt
+        user_agent = request.headers.get("user-agent")
+        await log_login_attempt(db, email, ip, False, user_agent)
+        await db.commit()
+        
+        logger.warning(f"AUTH_FAIL email={email} ip={ip} reason=invalid_password")
         raise AuthenticationError("Invalid email or password")
 
-    if not user.is_active:
-        logger.warning(f"AUTH_FAIL email={email} ip={ip} reason=account_banned")
-        raise ForbiddenError("Account has been suspended")
-
-    if not user.is_verified:
-        raise AuthenticationError("Please verify your email before logging in")
+    # Check for brute force attempts
+    from app.core.audit import get_recent_failed_logins
+    failed_count = await get_recent_failed_logins(db, email, minutes=15)
+    if failed_count >= 5:
+        logger.warning(f"AUTH_BRUTE_FORCE email={email} ip={ip} failed_count={failed_count}")
+        raise RateLimitError(
+            "Too many failed login attempts. Please try again in 15 minutes.",
+            retry_after=900
+        )
 
     # Update last login
     user.last_login_at = datetime.now(timezone.utc)
+    
+    # Log successful login
+    from app.core.audit import log_login_attempt
+    user_agent = request.headers.get("user-agent")
+    await log_login_attempt(db, email, ip, True, user_agent)
+    
     await db.commit()
 
     logger.info(f"USER_LOGIN email={email} ip={ip}")
@@ -379,11 +439,12 @@ async def get_me(
     else:
         usage_row = None
 
+    # Web UI gets higher char limit (2000) vs API (1000)
     usage = UserUsageToday(
         requests=usage_row.request_count if usage_row else 0,
         chars=usage_row.chars_used if usage_row else 0,
-        requests_limit=settings.free_req_per_day,
-        chars_limit=settings.free_char_limit,
+        requests_limit=settings.free_webui_req_per_day,
+        chars_limit=settings.free_webui_char_limit,  # 2000 for Web UI
     )
 
     user_profile = UserProfile(
@@ -453,6 +514,17 @@ async def reset_password(
     user.reset_token = None
     user.reset_token_expires = None
     user.updated_at = now
+    
+    # Log audit event
+    from app.core.audit import log_audit_event
+    await log_audit_event(
+        db, 
+        action='password_reset',
+        ip_address='unknown',  # No request context here
+        user_id=user.id,
+        resource=f'user:{user.id}'
+    )
+    
     await db.commit()
 
     logger.info(f"PASSWORD_RESET email={user.email}")
@@ -464,10 +536,20 @@ async def reset_password(
 @router.post("/resend-verification", response_model=MessageResponse)
 async def resend_verification(
     body: ResendVerificationRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """Resend verification email. Rate limited: 1 per 5 minutes per email."""
+    ip = get_client_ip(request)
     email = body.email.lower().strip()
+    
+    # Verify Turnstile if enabled
+    if settings.turnstile_enabled:
+        if not body.turnstile_token:
+            raise ValidationError("Turnstile verification required")
+        if not await verify_turnstile(body.turnstile_token, ip=ip):
+            raise ValidationError("Turnstile verification failed. Please try again.")
+    
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
@@ -532,6 +614,20 @@ async def regen_key(
     new_key_str = generate_api_key()
     new_key = ApiKey(key=new_key_str, user_id=user_id, is_active=True)
     db.add(new_key)
+    
+    # Log audit event
+    from app.core.audit import log_audit_event
+    ip = request.client.host if request.client else "unknown"
+    user_agent = request.headers.get("user-agent")
+    await log_audit_event(
+        db,
+        action='api_key_regenerated',
+        ip_address=ip,
+        user_id=user_id,
+        resource=f'api_key:{new_key_str[:12]}...',
+        user_agent=user_agent
+    )
+    
     await db.commit()
 
     logger.info(f"API_KEY_REGEN user_id={user_id}")

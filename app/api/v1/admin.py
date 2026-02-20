@@ -6,13 +6,15 @@ Admin dashboard: stats, users, usage, ban, blacklist.
 
 import logging
 from datetime import date, datetime, timedelta, timezone
+from collections import defaultdict
+import time
 
 from fastapi import APIRouter, Depends, Request, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc, and_
 
 from app.config import settings
-from app.core.exceptions import ForbiddenError
+from app.core.exceptions import ForbiddenError, RateLimitError
 from app.core.cache import get_cache
 from app.db.database import get_db
 from app.db.models import User, ApiKey, DailyUsage, TokenRevocation, Blacklist
@@ -22,11 +24,38 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+# Simple in-memory rate limiter for admin endpoints
+class AdminRateLimiter:
+    def __init__(self):
+        self._requests = defaultdict(list)  # ip -> list of timestamps
+    
+    def check_limit(self, ip: str, limit: int = 30, window: int = 60):
+        """Check if IP has exceeded limit requests in window seconds"""
+        now = time.time()
+        # Clean old entries
+        self._requests[ip] = [ts for ts in self._requests[ip] if now - ts < window]
+        
+        if len(self._requests[ip]) >= limit:
+            raise RateLimitError(
+                f"Admin rate limit exceeded. Max {limit} requests per minute.",
+                retry_after=int(window - (now - self._requests[ip][0]))
+            )
+        
+        self._requests[ip].append(now)
+
+_admin_limiter = AdminRateLimiter()
+
+
 async def verify_admin_key(request: Request):
-    """Dependency — validates X-Admin-Key header"""
+    """Dependency — validates X-Admin-Key header with rate limiting"""
+    ip = request.client.host if request.client else "unknown"
+    
+    # Rate limit: 30 requests per minute per IP
+    _admin_limiter.check_limit(ip, limit=30, window=60)
+    
     key = request.headers.get("x-admin-key", "")
     if not key or key != settings.admin_key:
-        logger.warning(f"ADMIN_AUTH_FAIL ip={request.client.host if request.client else 'unknown'}")
+        logger.warning(f"ADMIN_AUTH_FAIL ip={ip}")
         raise ForbiddenError("Invalid or missing admin key")
     return key
 
@@ -83,7 +112,15 @@ async def admin_users(
 
     query = select(User)
     if search:
-        query = query.where(User.email.ilike(f"%{search}%"))
+        # Sanitize search input - remove SQL wildcards and validate length
+        search_clean = search.replace("%", "").replace("_", "").strip()
+        if len(search_clean) < 2:
+            from app.core.exceptions import ValidationError
+            raise ValidationError("Search query must be at least 2 characters")
+        if len(search_clean) > 100:
+            from app.core.exceptions import ValidationError
+            raise ValidationError("Search query too long")
+        query = query.where(User.email.ilike(f"%{search_clean}%"))
 
     # Count
     count_q = select(func.count()).select_from(query.subquery())
@@ -223,6 +260,7 @@ async def admin_disable_key(
 @router.post("/users/{user_id}/ban", dependencies=[Depends(verify_admin_key)])
 async def admin_ban_user(
     user_id: int,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """Ban a user: set is_active=False, disable their API key"""
@@ -238,6 +276,17 @@ async def admin_ban_user(
     )
     for key in result.scalars().all():
         key.is_active = False
+
+    # Log audit event
+    from app.core.audit import log_audit_event
+    ip = request.client.host if request.client else "unknown"
+    await log_audit_event(
+        db,
+        action='admin_ban_user',
+        ip_address=ip,
+        resource=f'user:{user_id}',
+        details={'email': user.email}
+    )
 
     await db.commit()
 
@@ -284,5 +333,112 @@ async def get_blacklist(db: AsyncSession = Depends(get_db)):
                 "created_at": e.created_at.isoformat() if e.created_at else None,
             }
             for e in entries
+        ]
+    }
+
+
+# ── GET /admin/email/status ────────────────────────────────────────────────────
+@router.get("/email/status", dependencies=[Depends(verify_admin_key)])
+async def email_provider_status():
+    """Get health status of all email providers"""
+    from app.services.email_service import get_email_dispatcher
+    return {"providers": get_email_dispatcher().get_status()}
+
+
+# ── GET /admin/audit-logs ──────────────────────────────────────────────────────
+@router.get("/audit-logs", dependencies=[Depends(verify_admin_key)])
+async def get_audit_logs(
+    db: AsyncSession = Depends(get_db),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(50, ge=1, le=200),
+    action: str = Query(None),
+    user_id: int = Query(None),
+):
+    """Get audit logs with pagination and filtering"""
+    from app.db.models import AuditLog
+    
+    offset = (page - 1) * per_page
+    
+    query = select(AuditLog)
+    
+    if action:
+        query = query.where(AuditLog.action == action)
+    if user_id:
+        query = query.where(AuditLog.user_id == user_id)
+    
+    # Count
+    count_q = select(func.count()).select_from(query.subquery())
+    total = (await db.execute(count_q)).scalar() or 0
+    
+    # Get logs
+    query = query.order_by(desc(AuditLog.timestamp)).offset(offset).limit(per_page)
+    result = await db.execute(query)
+    logs = result.scalars().all()
+    
+    return {
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "logs": [
+            {
+                "id": log.id,
+                "user_id": log.user_id,
+                "action": log.action,
+                "resource": log.resource,
+                "ip_address": log.ip_address,
+                "details": log.details,
+                "timestamp": log.timestamp.isoformat() if log.timestamp else None,
+            }
+            for log in logs
+        ]
+    }
+
+
+# ── GET /admin/login-attempts ──────────────────────────────────────────────────
+@router.get("/login-attempts", dependencies=[Depends(verify_admin_key)])
+async def get_login_attempts(
+    db: AsyncSession = Depends(get_db),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(50, ge=1, le=200),
+    email: str = Query(None),
+    success: bool = Query(None),
+    hours: int = Query(24, ge=1, le=168),  # Last 24 hours by default, max 7 days
+):
+    """Get login attempts with pagination and filtering"""
+    from app.db.models import LoginAttempt
+    
+    offset = (page - 1) * per_page
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+    
+    query = select(LoginAttempt).where(LoginAttempt.timestamp >= cutoff)
+    
+    if email:
+        query = query.where(LoginAttempt.email == email.lower())
+    if success is not None:
+        query = query.where(LoginAttempt.success == success)
+    
+    # Count
+    count_q = select(func.count()).select_from(query.subquery())
+    total = (await db.execute(count_q)).scalar() or 0
+    
+    # Get attempts
+    query = query.order_by(desc(LoginAttempt.timestamp)).offset(offset).limit(per_page)
+    result = await db.execute(query)
+    attempts = result.scalars().all()
+    
+    return {
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "hours": hours,
+        "attempts": [
+            {
+                "id": attempt.id,
+                "email": attempt.email,
+                "ip_address": attempt.ip_address,
+                "success": attempt.success,
+                "timestamp": attempt.timestamp.isoformat() if attempt.timestamp else None,
+            }
+            for attempt in attempts
         ]
     }

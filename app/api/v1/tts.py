@@ -31,13 +31,17 @@ logger = logging.getLogger(__name__)
 
 
 def compute_cache_key(req: TTSRequest) -> str:
-    """Generate deterministic SHA256 hash for TTS request"""
+    """
+    Generate deterministic SHA256 hash for TTS request.
+    Note: volume is excluded because edge-tts doesn't actually use it.
+    Including it would cause unnecessary cache misses.
+    """
     content = json.dumps({
         "text": req.text,
         "voice": req.voice,
         "rate": req.rate,
         "pitch": req.pitch,
-        "volume": req.volume,
+        # volume excluded - edge-tts ignores this parameter
     }, sort_keys=True, ensure_ascii=False).encode("utf-8")
     return hashlib.sha256(content).hexdigest()
 

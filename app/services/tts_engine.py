@@ -16,12 +16,10 @@ import logging
 
 import edge_tts
 
+from app.config import settings
 from app.services.proxy_manager import ProxyManager
 
 logger = logging.getLogger(__name__)
-
-MAX_RETRIES = 3
-RETRY_DELAY = 1.0  # seconds, multiplied per attempt (exponential backoff)
 
 
 class TTSEngine:
@@ -57,15 +55,18 @@ class TTSEngine:
         """
         last_error = None
         tried_direct = False  # Ensure we always try direct if proxy keeps failing
+        
+        max_retries = settings.tts_max_retries
+        retry_delay = settings.tts_retry_delay
 
-        for attempt in range(1, MAX_RETRIES + 1):
+        for attempt in range(1, max_retries + 1):
             # ProxyManager returns None when: no proxy configured OR all proxies dead
             proxy_url = await self.proxy_manager.get_next()
 
             # On last attempt, force direct connection as final safety net
             # This handles the case where ProxyManager still returns a proxy
             # but it keeps failing — we override to direct on final try
-            if attempt == MAX_RETRIES and proxy_url and not tried_direct:
+            if attempt == max_retries and proxy_url and not tried_direct:
                 logger.info("TTS_DIRECT_FALLBACK forcing direct connection on final attempt")
                 proxy_url = None
                 tried_direct = True
@@ -84,20 +85,20 @@ class TTSEngine:
 
             except Exception as e:
                 last_error = e
-                via = proxy_url or "direct"
+                via = proxy_url if proxy_url else "direct"
                 logger.warning(
-                    f"TTS_FAIL attempt={attempt}/{MAX_RETRIES} "
+                    f"TTS_FAIL attempt={attempt}/{max_retries} "
                     f"voice={voice} via={via} error={e}"
                 )
 
                 if proxy_url:
                     await self.proxy_manager.mark_failure(proxy_url)
 
-                if attempt < MAX_RETRIES:
-                    await asyncio.sleep(RETRY_DELAY * attempt)  # 1s, 2s, ...
+                if attempt < max_retries:
+                    await asyncio.sleep(retry_delay * attempt)  # 1s, 2s, ...
 
         raise RuntimeError(
-            f"TTS generation failed after {MAX_RETRIES} attempts "
+            f"TTS generation failed after {max_retries} attempts "
             f"(tried proxy + direct fallback): {last_error}"
         )
 

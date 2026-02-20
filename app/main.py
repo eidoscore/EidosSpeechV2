@@ -6,6 +6,7 @@ Main entry point: DB init, lifespan, CORS, page routes, cleanup tasks.
 import asyncio
 import logging
 import os
+import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -14,6 +15,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app import __version__, __title__, __description__
 from app.config import settings
@@ -67,14 +69,27 @@ async def periodic_cleanup():
                         User.created_at < cutoff_72h,
                     )
                 )
+                # 4. Old login attempts (> 30 days)
+                from app.db.models import LoginAttempt
+                cutoff_30d = now - timedelta(days=30)
+                r4 = await db.execute(
+                    delete(LoginAttempt).where(LoginAttempt.timestamp < cutoff_30d)
+                )
+                # 5. Old audit logs (> 90 days)
+                from app.db.models import AuditLog
+                cutoff_90d = now - timedelta(days=90)
+                r5 = await db.execute(
+                    delete(AuditLog).where(AuditLog.timestamp < cutoff_90d)
+                )
 
                 await db.commit()
 
-                deleted = r1.rowcount + r2.rowcount + r3.rowcount
+                deleted = r1.rowcount + r2.rowcount + r3.rowcount + r4.rowcount + r5.rowcount
                 if deleted > 0:
                     logger.info(
                         f"CLEANUP_COMPLETE revocations={r1.rowcount} "
-                        f"reg_attempts={r2.rowcount} unverified_users={r3.rowcount}"
+                        f"reg_attempts={r2.rowcount} unverified_users={r3.rowcount} "
+                        f"login_attempts={r4.rowcount} audit_logs={r5.rowcount}"
                     )
 
             # Non-DB cleanup (no lock needed)
@@ -143,12 +158,16 @@ async def lifespan(app: FastAPI):
 
 
 # ── FastAPI App ────────────────────────────────────────────────────────────────
+# Conditionally disable docs in production
+docs_url = "/docs" if settings.debug else None
+redoc_url = "/redoc" if settings.debug else None
+
 app = FastAPI(
     title=__title__,
     description=__description__,
     version=__version__,
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url=docs_url,
+    redoc_url=redoc_url,
     lifespan=lifespan,
 )
 
@@ -175,6 +194,51 @@ app.add_middleware(
         "Retry-After",
     ],
 )
+
+
+# ── Security Headers Middleware ────────────────────────────────────────────────
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add security headers to all responses"""
+    response = await call_next(request)
+    
+    # Content Security Policy
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://challenges.cloudflare.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data:; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none';"
+    )
+    
+    # Prevent clickjacking
+    response.headers["X-Frame-Options"] = "DENY"
+    
+    # Prevent MIME type sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    
+    # Referrer policy
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    
+    # XSS protection (legacy but still useful)
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    
+    return response
+
+
+# ── Request ID Middleware ──────────────────────────────────────────────────────
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    """Add unique request ID for tracing"""
+    async def dispatch(self, request: Request, call_next):
+        request_id = str(uuid.uuid4())
+        request.state.request_id = request_id
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+
+app.add_middleware(RequestIDMiddleware)
 
 # ── Global Exception Handlers ──────────────────────────────────────────────────
 @app.exception_handler(EidosSpeechError)

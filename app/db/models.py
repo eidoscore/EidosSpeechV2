@@ -1,6 +1,6 @@
 """
 eidosSpeech v2 — SQLAlchemy ORM Models
-6 tables: users, api_keys, daily_usage, token_revocations, registration_attempts, blacklist
+8 tables: users, api_keys, daily_usage, token_revocations, registration_attempts, blacklist, login_attempts, audit_logs
 """
 
 from sqlalchemy import (
@@ -78,6 +78,7 @@ class DailyUsage(Base):
     __table_args__ = (
         Index("idx_daily_usage_key_date", "api_key_id", "date"),
         Index("idx_daily_usage_ip_date", "ip_address", "date"),
+        Index("idx_daily_usage_date", "date"),  # Standalone date index for admin queries
     )
 
 
@@ -115,4 +116,40 @@ class Blacklist(Base):
 
     __table_args__ = (
         UniqueConstraint("type", "value", name="uq_blacklist_type_value"),
+    )
+
+
+class LoginAttempt(Base):
+    """Track login attempts for security monitoring and brute-force detection"""
+    __tablename__ = "login_attempts"
+
+    id         = Column(Integer, primary_key=True, autoincrement=True)
+    email      = Column(String(255), nullable=False, index=True)
+    ip_address = Column(String(45), nullable=False, index=True)
+    success    = Column(Boolean, nullable=False)
+    user_agent = Column(String(500))
+    timestamp  = Column(DateTime, server_default=func.now(), nullable=False, index=True)
+
+    __table_args__ = (
+        Index("idx_login_attempts_email_timestamp", "email", "timestamp"),
+        Index("idx_login_attempts_ip_timestamp", "ip_address", "timestamp"),
+    )
+
+
+class AuditLog(Base):
+    """Audit log for critical security events"""
+    __tablename__ = "audit_logs"
+
+    id         = Column(Integer, primary_key=True, autoincrement=True)
+    user_id    = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))  # nullable
+    action     = Column(String(100), nullable=False, index=True)  # e.g., 'password_reset', 'api_key_regen'
+    resource   = Column(String(255))  # e.g., 'user:123', 'api_key:456'
+    ip_address = Column(String(45), nullable=False)
+    user_agent = Column(String(500))
+    details    = Column(String(1000))  # JSON string with additional context
+    timestamp  = Column(DateTime, server_default=func.now(), nullable=False, index=True)
+
+    __table_args__ = (
+        Index("idx_audit_logs_user_timestamp", "user_id", "timestamp"),
+        Index("idx_audit_logs_action_timestamp", "action", "timestamp"),
     )

@@ -103,9 +103,9 @@ async def resolve_request_context(
     Determine request tier and limits.
 
     Resolution order:
-    1. X-API-Key header → DB lookup → "registered"
-    2. Authorization: Bearer <jwt> → decode → load user's API key → "registered"
-    3. No credentials + Origin = own domain → "anonymous" (Web UI)
+    1. X-API-Key header → DB lookup → "registered" (API limits: 1000 char)
+    2. Authorization: Bearer <jwt> → decode → load user's API key → "registered" (Web UI limits: 2000 char)
+    3. No credentials + Origin = own domain → "anonymous" (Web UI: 500 char)
     4. No credentials + external Origin → 403 Forbidden
     """
     from app.db.models import ApiKey, User
@@ -117,7 +117,7 @@ async def resolve_request_context(
         logger.warning(f"BLACKLIST_BLOCK ip={ip}")
         raise ForbiddenError("Access denied")
 
-    # ── 1. X-API-Key header ───────────────────────────────────
+    # ── 1. X-API-Key header (External API call) ───────────────
     api_key_header = request.headers.get("x-api-key")
     if api_key_header:
         result = await db.execute(
@@ -146,13 +146,13 @@ async def resolve_request_context(
             api_key_id=key.id,
             user_id=user.id,
             ip_address=ip,
-            char_limit=settings.free_char_limit,
-            req_per_day=settings.free_req_per_day,
-            req_per_min=settings.free_req_per_min,
+            char_limit=settings.free_api_char_limit,  # 1000 char for API
+            req_per_day=settings.free_api_req_per_day,
+            req_per_min=settings.free_api_req_per_min,
             is_web_ui=False,
         )
 
-    # ── 2. Authorization: Bearer <jwt> ─────────────────────────
+    # ── 2. Authorization: Bearer <jwt> (Web UI) ────────────────
     auth_header = request.headers.get("authorization", "")
     if auth_header.startswith("Bearer "):
         token = auth_header[7:]
@@ -183,9 +183,9 @@ async def resolve_request_context(
             api_key_id=key.id if key else None,
             user_id=user_id,
             ip_address=ip,
-            char_limit=settings.free_char_limit,
-            req_per_day=settings.free_req_per_day,
-            req_per_min=settings.free_req_per_min,
+            char_limit=settings.free_webui_char_limit,  # 2000 char for Web UI
+            req_per_day=settings.free_webui_req_per_day,
+            req_per_min=settings.free_webui_req_per_min,
             is_web_ui=is_own_origin(request),
         )
 
@@ -198,7 +198,7 @@ async def resolve_request_context(
             api_key_id=None,
             user_id=None,
             ip_address=ip,
-            char_limit=settings.anon_char_limit,
+            char_limit=settings.anon_char_limit,  # 500 char
             req_per_day=settings.anon_req_per_day,
             req_per_min=settings.anon_req_per_min,
             is_web_ui=True,

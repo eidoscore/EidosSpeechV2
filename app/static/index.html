@@ -416,8 +416,7 @@
                         onkeydown="if(event.key==='Enter')doLogin()">
                 </div>
                 <!-- Turnstile Widget -->
-                <div id="cf-turnstile-login" class="cf-turnstile" data-sitekey="0x4AAAAAAAVO9E-K2xst8w1L"
-                    data-theme="dark"></div>
+                <div id="cf-turnstile-login"></div>
 
                 <button id="login-submit-btn" onclick="doLogin()"
                     class="w-full bg-brand-500 hover:bg-brand-400 text-white font-semibold py-2.5 rounded-xl transition-colors shadow-lg shadow-brand-500/20">Sign
@@ -456,8 +455,7 @@
                         transactional emails.</span>
                 </label>
                 <!-- Turnstile Widget -->
-                <div id="cf-turnstile-register" class="cf-turnstile" data-sitekey="0x4AAAAAAAVO9E-K2xst8w1L"
-                    data-theme="dark"></div>
+                <div id="cf-turnstile-register"></div>
 
                 <button id="register-submit-btn" onclick="doRegister()"
                     class="w-full bg-brand-500 hover:bg-brand-400 text-white font-semibold py-2.5 rounded-xl transition-colors shadow-lg shadow-brand-500/20">Create
@@ -668,11 +666,57 @@
             }
         }
 
+        // ── Turnstile Management ───────────────────────────────────────────────────
+        let turnstileWidgets = { login: null, register: null };
+        let turnstileConfig = { enabled: false, sitekey: null };
+
+        async function loadTurnstileConfig() {
+            try {
+                const resp = await fetch('/api/v1/auth/turnstile-config');
+                turnstileConfig = await resp.json();
+                
+                // Hide Turnstile containers if not enabled
+                if (!turnstileConfig.enabled) {
+                    const loginContainer = document.getElementById('cf-turnstile-login');
+                    const registerContainer = document.getElementById('cf-turnstile-register');
+                    if (loginContainer) loginContainer.style.display = 'none';
+                    if (registerContainer) registerContainer.style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Failed to load Turnstile config:', e);
+            }
+        }
+
+        function initTurnstile() {
+            if (!window.turnstile || !turnstileConfig.enabled || !turnstileConfig.sitekey) return;
+            
+            // Render login widget
+            const loginContainer = document.getElementById('cf-turnstile-login');
+            if (loginContainer && !turnstileWidgets.login) {
+                turnstileWidgets.login = turnstile.render('#cf-turnstile-login', {
+                    sitekey: turnstileConfig.sitekey,
+                    theme: 'dark',
+                });
+            }
+            
+            // Render register widget
+            const registerContainer = document.getElementById('cf-turnstile-register');
+            if (registerContainer && !turnstileWidgets.register) {
+                turnstileWidgets.register = turnstile.render('#cf-turnstile-register', {
+                    sitekey: turnstileConfig.sitekey,
+                    theme: 'dark',
+                });
+            }
+        }
+
         // ── Modal Management ───────────────────────────────────────────────────────
         function openModal(type = 'login') {
             document.getElementById('modal-overlay').classList.remove('hidden');
             document.getElementById('modal-overlay').classList.add('flex');
             switchModal(type);
+            
+            // Initialize Turnstile when modal opens
+            setTimeout(() => initTurnstile(), 100);
         }
         function closeModal() {
             document.getElementById('modal-overlay').classList.add('hidden');
@@ -688,8 +732,8 @@
 
             // Reset Turnstile on switch
             if (window.turnstile) {
-                turnstile.reset('#cf-turnstile-login');
-                turnstile.reset('#cf-turnstile-register');
+                if (turnstileWidgets.login) turnstile.reset(turnstileWidgets.login);
+                if (turnstileWidgets.register) turnstile.reset(turnstileWidgets.register);
             }
         }
 
@@ -699,7 +743,14 @@
             const password = document.getElementById('login-password').value;
             if (!email || !password) { showToast('Fill all fields.', 'warning'); return; }
 
-            const turnstileToken = window.turnstile ? turnstile.getResponse('#cf-turnstile-login') : null;
+            let turnstileToken = null;
+            if (turnstileConfig.enabled && window.turnstile && turnstileWidgets.login) {
+                turnstileToken = turnstile.getResponse(turnstileWidgets.login);
+                if (!turnstileToken) {
+                    showToast('Please complete the verification challenge.', 'warning');
+                    return;
+                }
+            }
 
             try {
                 await ApiClient.auth.login(email, password, turnstileToken);
@@ -708,7 +759,9 @@
                 await updateUIForAuth();
             } catch (e) {
                 showToast(e.message || 'Login failed.', 'error');
-                if (window.turnstile) turnstile.reset('#cf-turnstile-login');
+                if (window.turnstile && turnstileWidgets.login) {
+                    turnstile.reset(turnstileWidgets.login);
+                }
             }
         }
 
@@ -720,7 +773,14 @@
             if (!email || !password) { showToast('Fill all fields.', 'warning'); return; }
             if (!tos) { showToast('Please accept the Terms of Service.', 'warning'); return; }
 
-            const turnstileToken = window.turnstile ? turnstile.getResponse('#cf-turnstile-register') : null;
+            let turnstileToken = null;
+            if (turnstileConfig.enabled && window.turnstile && turnstileWidgets.register) {
+                turnstileToken = turnstile.getResponse(turnstileWidgets.register);
+                if (!turnstileToken) {
+                    showToast('Please complete the verification challenge.', 'warning');
+                    return;
+                }
+            }
 
             try {
                 await ApiClient.auth.register(email, password, name, tos, turnstileToken);
@@ -728,7 +788,9 @@
                 showToast('Account created! Check your email for verification.', 'success', 7000);
             } catch (e) {
                 showToast(e.message || 'Registration failed.', 'error');
-                if (window.turnstile) turnstile.reset('#cf-turnstile-register');
+                if (window.turnstile && turnstileWidgets.register) {
+                    turnstile.reset(turnstileWidgets.register);
+                }
             }
         }
 
@@ -804,6 +866,7 @@
 
         // ── Init ───────────────────────────────────────────────────────────────────
         document.addEventListener('DOMContentLoaded', async () => {
+            await loadTurnstileConfig();
             await AuthStore.init();
             await updateUIForAuth();
             await loadVoices();

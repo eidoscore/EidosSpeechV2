@@ -49,14 +49,50 @@ class RegisterRequest(BaseModel):
         if not v:
             raise ValueError("You must accept the Terms of Service to register")
         return v
+    
+    @field_validator("full_name")
+    @classmethod
+    def sanitize_name(cls, v):
+        if not v:
+            return v
+        # Remove HTML tags
+        import re
+        v = re.sub(r'<[^>]+>', '', v)
+        # Remove excessive whitespace
+        v = ' '.join(v.split())
+        # Limit to alphanumeric + basic punctuation
+        if not re.match(r'^[a-zA-Z0-9\s\.\-\']+$', v):
+            raise ValueError("Name contains invalid characters. Only letters, numbers, spaces, dots, hyphens, and apostrophes allowed")
+        return v
 
     @field_validator("password")
     @classmethod
-    def password_not_common(cls, v):
+    def password_strength(cls, v):
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters")
         if len(v) > 128:
             raise ValueError("Password cannot exceed 128 characters")
+        
+        # Check complexity requirements
+        has_upper = any(c.isupper() for c in v)
+        has_lower = any(c.islower() for c in v)
+        has_digit = any(c.isdigit() for c in v)
+        
+        if not has_upper:
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not has_lower:
+            raise ValueError("Password must contain at least one lowercase letter")
+        if not has_digit:
+            raise ValueError("Password must contain at least one number")
+        
+        # Check against common passwords
+        common_passwords = [
+            "password", "12345678", "qwerty", "abc123", "password123",
+            "admin123", "letmein", "welcome", "monkey", "dragon"
+        ]
+        if v.lower() in common_passwords:
+            raise ValueError("Password is too common. Please choose a stronger password")
+        
         return v
 
 
@@ -81,6 +117,7 @@ class ResetPasswordRequest(BaseModel):
 
 class ResendVerificationRequest(BaseModel):
     email: EmailStr
+    turnstile_token: Optional[str] = None  # Cloudflare Turnstile (if enabled)
 
 
 class RefreshTokenRequest(BaseModel):

@@ -10,8 +10,8 @@ services:
     env_file:
       - .env
     volumes:
-      - eidosspeech-db:/app/data/db
-      - eidosspeech-cache:/app/data/cache
+      - ./data/db:/app/data/db
+      - ./data/cache:/app/data/cache
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8001/api/v1/health" ]
@@ -23,7 +23,3 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-
-volumes:
-  eidosspeech-db:
-  eidosspeech-cache:

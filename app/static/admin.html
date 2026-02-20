@@ -1175,3 +1175,14 @@
                 }
             });
         }
+
+
+        // Auto-login from session
+        const savedKey = sessionStorage.getItem('eidos_admin_key');
+        if (savedKey) {
+            document.getElementById('admin-key-input').value = savedKey;
+            doAdminLogin();
+        }
+    </script>
+</body>
+</html>

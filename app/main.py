@@ -241,6 +241,70 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(RequestIDMiddleware)
 
+
+# ── Analytics Tracking Middleware ──────────────────────────────────────────────
+class AnalyticsMiddleware(BaseHTTPMiddleware):
+    """Track page views for analytics (exclude API and static files)"""
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        
+        # Only track successful GET requests to HTML pages
+        if (
+            request.method == "GET" 
+            and response.status_code == 200
+            and not request.url.path.startswith("/api/")
+            and not request.url.path.startswith("/static/")
+            and not request.url.path.startswith("/favicon")
+            and not request.url.path.startswith("/robots")
+            and not request.url.path.startswith("/sitemap")
+        ):
+            # Track asynchronously without blocking response
+            asyncio.create_task(self._track_page_view(request))
+        
+        return response
+    
+    async def _track_page_view(self, request: Request):
+        """Store page view in database"""
+        try:
+            from app.db.database import AsyncSessionLocal
+            from app.db.models import PageView
+            from datetime import date
+            
+            # Get client IP (handle proxy headers)
+            client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+            if not client_ip:
+                client_ip = request.headers.get("X-Real-IP", "")
+            if not client_ip:
+                client_ip = request.client.host if request.client else "unknown"
+            
+            # Get country from IP (simple approach using ipapi.co free tier)
+            country = None
+            try:
+                import httpx
+                async with httpx.AsyncClient(timeout=2.0) as client:
+                    resp = await client.get(f"https://ipapi.co/{client_ip}/country/")
+                    if resp.status_code == 200:
+                        country = resp.text.strip()[:2]  # ISO 2-letter code
+            except Exception:
+                pass  # Silently fail if GeoIP lookup fails
+            
+            async with AsyncSessionLocal() as session:
+                page_view = PageView(
+                    path=request.url.path,
+                    ip_address=client_ip[:45],  # Truncate to fit column
+                    country=country,
+                    user_agent=request.headers.get("User-Agent", "")[:500],
+                    referrer=request.headers.get("Referer", "")[:500],
+                    date=date.today(),
+                    timestamp=datetime.now(timezone.utc)
+                )
+                session.add(page_view)
+                await session.commit()
+        except Exception as e:
+            logger.error(f"Failed to track page view: {e}")
+
+app.add_middleware(AnalyticsMiddleware)
+
 # ── Global Exception Handlers ──────────────────────────────────────────────────
 @app.exception_handler(EidosSpeechError)
 async def eidosspeech_error_handler(request: Request, exc: EidosSpeechError):

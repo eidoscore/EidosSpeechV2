@@ -156,3 +156,23 @@ class AuditLog(Base):
         Index("idx_audit_logs_user_timestamp", "user_id", "timestamp"),
         Index("idx_audit_logs_action_timestamp", "action", "timestamp"),
     )
+
+
+class PageView(Base):
+    """Track page views for analytics"""
+    __tablename__ = "page_views"
+
+    id         = Column(Integer, primary_key=True, autoincrement=True)
+    path       = Column(String(500), nullable=False, index=True)
+    ip_address = Column(String(45), nullable=False)
+    country    = Column(String(2))  # ISO 3166-1 alpha-2 country code
+    user_agent = Column(String(500))
+    referrer   = Column(String(500))
+    date       = Column(Date, nullable=False, index=True)
+    timestamp  = Column(DateTime, server_default=func.now(), nullable=False, index=True)
+
+    __table_args__ = (
+        Index("idx_page_views_date_path", "date", "path"),
+        Index("idx_page_views_ip_date", "ip_address", "date"),
+        Index("idx_page_views_country_date", "country", "date"),
+    )

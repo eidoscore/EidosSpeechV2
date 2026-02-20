@@ -110,6 +110,8 @@
                 <button class="nav-btn w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors"
                     onclick="showTab('usage', this)">📈 Usage</button>
                 <button class="nav-btn w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors"
+                    onclick="showTab('analytics', this)">🌍 Analytics</button>
+                <button class="nav-btn w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors"
                     onclick="showTab('blacklist', this)">🚫 Blacklist</button>
             </nav>
             <div class="p-3 border-t border-white/[.06]">
@@ -388,6 +390,65 @@
                     </div>
                 </div>
 
+                <!-- Analytics Tab -->
+                <div id="tab-analytics" class="hidden space-y-4">
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="card rounded-xl p-4">
+                            <div class="text-xs text-gray-500 mb-1">Total Page Views (30d)</div>
+                            <div id="analytics-total-views" class="text-2xl font-black text-emerald-400">—</div>
+                        </div>
+                        <div class="card rounded-xl p-4">
+                            <div class="text-xs text-gray-500 mb-1">Unique Visitors (30d)</div>
+                            <div id="analytics-total-visitors" class="text-2xl font-black text-blue-400">—</div>
+                        </div>
+                    </div>
+
+                    <!-- Period Selector -->
+                    <div class="flex gap-2 items-center">
+                        <label class="text-xs text-gray-500">View:</label>
+                        <select id="analytics-period" onchange="loadAnalytics()"
+                            class="bg-white/5 border border-white/10 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none">
+                            <option value="daily" selected>Daily (30 days)</option>
+                            <option value="weekly">Weekly (12 weeks)</option>
+                            <option value="monthly">Monthly (12 months)</option>
+                        </select>
+                    </div>
+
+                    <!-- Traffic Chart -->
+                    <div class="card rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                            <span>📊</span> Website Traffic
+                        </h3>
+                        <div class="relative" style="height: 300px;">
+                            <canvas id="traffic-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Top Countries & Pages -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <!-- Top Countries -->
+                        <div class="card rounded-xl p-5">
+                            <h3 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                                <span>🌍</span> Top Countries (30d)
+                            </h3>
+                            <div id="top-countries" class="space-y-2">
+                                <div class="text-center text-gray-600 text-sm py-4">Loading…</div>
+                            </div>
+                        </div>
+
+                        <!-- Top Pages -->
+                        <div class="card rounded-xl p-5">
+                            <h3 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                                <span>📄</span> Top Pages (30d)
+                            </h3>
+                            <div id="top-pages" class="space-y-2">
+                                <div class="text-center text-gray-600 text-sm py-4">Loading…</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Blacklist Tab -->
                 <div id="tab-blacklist" class="hidden space-y-4">
                     <div class="card rounded-2xl p-5">
@@ -436,6 +497,7 @@
         let _requestsChart = null;
         let _charactersChart = null;
         let _overviewChart = null;
+        let _trafficChart = null;
 
         function apiHeaders() {
             return { 'Content-Type': 'application/json', 'X-Admin-Key': _adminKey };
@@ -467,7 +529,7 @@
 
         function showTab(tab, btn) {
             _currentTab = tab;
-            ['overview', 'users', 'usage', 'blacklist'].forEach(t => {
+            ['overview', 'users', 'usage', 'analytics', 'blacklist'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
             });
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
@@ -476,7 +538,7 @@
             if (btn) btn.classList.add('active');
 
             document.getElementById('page-title').textContent =
-                { overview: 'Overview', users: 'Users', usage: 'Usage Analytics', blacklist: 'Blacklist' }[tab] || tab;
+                { overview: 'Overview', users: 'Users', usage: 'Usage Analytics', analytics: 'Website Analytics', blacklist: 'Blacklist' }[tab] || tab;
 
             loadCurrentTab();
         }
@@ -485,6 +547,7 @@
             if (_currentTab === 'overview') loadStats();
             if (_currentTab === 'users') loadUsers();
             if (_currentTab === 'usage') loadUsage();
+            if (_currentTab === 'analytics') loadAnalytics();
             if (_currentTab === 'blacklist') loadBlacklist();
         }
 
@@ -912,3 +975,203 @@
 </body>
 
 </html>
+
+
+        // ── Analytics Functions ────────────────────────────────────────────────
+        const COUNTRY_NAMES = {
+            'US': 'United States', 'ID': 'Indonesia', 'IN': 'India', 'CN': 'China',
+            'BR': 'Brazil', 'PK': 'Pakistan', 'NG': 'Nigeria', 'BD': 'Bangladesh',
+            'RU': 'Russia', 'MX': 'Mexico', 'JP': 'Japan', 'PH': 'Philippines',
+            'EG': 'Egypt', 'ET': 'Ethiopia', 'VN': 'Vietnam', 'CD': 'DR Congo',
+            'TR': 'Turkey', 'IR': 'Iran', 'DE': 'Germany', 'TH': 'Thailand',
+            'GB': 'United Kingdom', 'FR': 'France', 'IT': 'Italy', 'ZA': 'South Africa',
+            'MM': 'Myanmar', 'KR': 'South Korea', 'CO': 'Colombia', 'ES': 'Spain',
+            'AR': 'Argentina', 'DZ': 'Algeria', 'SD': 'Sudan', 'UA': 'Ukraine',
+            'UG': 'Uganda', 'IQ': 'Iraq', 'PL': 'Poland', 'CA': 'Canada',
+            'MA': 'Morocco', 'SA': 'Saudi Arabia', 'UZ': 'Uzbekistan', 'PE': 'Peru',
+            'MY': 'Malaysia', 'AF': 'Afghanistan', 'MZ': 'Mozambique', 'GH': 'Ghana',
+            'YE': 'Yemen', 'NP': 'Nepal', 'VE': 'Venezuela', 'MG': 'Madagascar',
+            'AU': 'Australia', 'KP': 'North Korea', 'TW': 'Taiwan', 'NE': 'Niger',
+            'LK': 'Sri Lanka', 'BF': 'Burkina Faso', 'ML': 'Mali', 'RO': 'Romania',
+            'MW': 'Malawi', 'CL': 'Chile', 'KZ': 'Kazakhstan', 'ZM': 'Zambia',
+            'GT': 'Guatemala', 'EC': 'Ecuador', 'SY': 'Syria', 'NL': 'Netherlands',
+            'SN': 'Senegal', 'KH': 'Cambodia', 'TD': 'Chad', 'SO': 'Somalia',
+            'ZW': 'Zimbabwe', 'GN': 'Guinea', 'RW': 'Rwanda', 'BJ': 'Benin',
+            'TN': 'Tunisia', 'BI': 'Burundi', 'BO': 'Bolivia', 'HT': 'Haiti',
+            'BE': 'Belgium', 'JO': 'Jordan', 'CU': 'Cuba', 'SS': 'South Sudan',
+            'DO': 'Dominican Republic', 'CZ': 'Czech Republic', 'SE': 'Sweden',
+            'PT': 'Portugal', 'AZ': 'Azerbaijan', 'GR': 'Greece', 'HU': 'Hungary',
+            'TJ': 'Tajikistan', 'BY': 'Belarus', 'AE': 'UAE', 'AT': 'Austria',
+            'RS': 'Serbia', 'IL': 'Israel', 'CH': 'Switzerland', 'TG': 'Togo',
+            'HK': 'Hong Kong', 'SG': 'Singapore', 'DK': 'Denmark', 'FI': 'Finland',
+            'SK': 'Slovakia', 'NO': 'Norway', 'IE': 'Ireland', 'HR': 'Croatia',
+            'NZ': 'New Zealand', 'BG': 'Bulgaria', 'CR': 'Costa Rica', 'LB': 'Lebanon',
+            'PR': 'Puerto Rico', 'PS': 'Palestine', 'UY': 'Uruguay', 'PA': 'Panama',
+            'MN': 'Mongolia', 'AM': 'Armenia', 'AL': 'Albania', 'LT': 'Lithuania',
+            'JM': 'Jamaica', 'QA': 'Qatar', 'NA': 'Namibia', 'MK': 'North Macedonia',
+            'BW': 'Botswana', 'SI': 'Slovenia', 'LV': 'Latvia', 'KW': 'Kuwait',
+            'GM': 'Gambia', 'GA': 'Gabon', 'TT': 'Trinidad and Tobago', 'EE': 'Estonia',
+            'MU': 'Mauritius', 'SZ': 'Eswatini', 'DJ': 'Djibouti', 'FJ': 'Fiji',
+            'CY': 'Cyprus', 'RE': 'Réunion', 'GQ': 'Equatorial Guinea', 'BH': 'Bahrain',
+            'ME': 'Montenegro', 'LU': 'Luxembourg', 'SR': 'Suriname', 'CV': 'Cape Verde',
+            'MT': 'Malta', 'MV': 'Maldives', 'BN': 'Brunei', 'BZ': 'Belize',
+            'IS': 'Iceland', 'BB': 'Barbados', 'PF': 'French Polynesia', 'VU': 'Vanuatu',
+            'NC': 'New Caledonia', 'GY': 'Guyana', 'WS': 'Samoa', 'ST': 'São Tomé and Príncipe',
+            'LC': 'Saint Lucia', 'GD': 'Grenada', 'TO': 'Tonga', 'FM': 'Micronesia',
+            'VC': 'Saint Vincent', 'KI': 'Kiribati', 'SC': 'Seychelles', 'AG': 'Antigua and Barbuda',
+            'AD': 'Andorra', 'DM': 'Dominica', 'KN': 'Saint Kitts and Nevis', 'MH': 'Marshall Islands',
+            'LI': 'Liechtenstein', 'MC': 'Monaco', 'SM': 'San Marino', 'PW': 'Palau',
+            'TV': 'Tuvalu', 'NR': 'Nauru', 'VA': 'Vatican City'
+        };
+
+        async function loadAnalytics() {
+            try {
+                const period = document.getElementById('analytics-period').value;
+                const resp = await fetch(`/api/v1/admin/analytics?period=${period}`, { headers: apiHeaders() });
+                const d = await resp.json();
+                
+                // Update totals
+                document.getElementById('analytics-total-views').textContent = d.totals.views.toLocaleString();
+                document.getElementById('analytics-total-visitors').textContent = d.totals.visitors.toLocaleString();
+                
+                // Update traffic chart
+                updateTrafficChart(d.traffic, period);
+                
+                // Update top countries
+                const countriesHtml = d.top_countries.length > 0 ? d.top_countries.map((c, i) => `
+                    <div class="flex items-center justify-between py-2 border-b border-white/[.03]">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs text-gray-600 font-mono w-6">#${i + 1}</span>
+                            <span class="text-sm text-gray-300">${COUNTRY_NAMES[c.country] || c.country}</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs text-gray-500">${c.visitors} visitors</span>
+                            <span class="text-sm text-emerald-400 font-mono">${c.views}</span>
+                        </div>
+                    </div>
+                `).join('') : '<div class="text-center text-gray-600 text-sm py-4">No data yet</div>';
+                document.getElementById('top-countries').innerHTML = countriesHtml;
+                
+                // Update top pages
+                const pagesHtml = d.top_pages.length > 0 ? d.top_pages.map((p, i) => `
+                    <div class="flex items-center justify-between py-2 border-b border-white/[.03]">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs text-gray-600 font-mono w-6">#${i + 1}</span>
+                            <span class="text-sm text-gray-300 font-mono truncate">${p.path}</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs text-gray-500">${p.visitors} visitors</span>
+                            <span class="text-sm text-blue-400 font-mono">${p.views}</span>
+                        </div>
+                    </div>
+                `).join('') : '<div class="text-center text-gray-600 text-sm py-4">No data yet</div>';
+                document.getElementById('top-pages').innerHTML = pagesHtml;
+                
+            } catch (e) {
+                showToast('Failed to load analytics.', 'error');
+                console.error('Analytics error:', e);
+            }
+        }
+
+        function updateTrafficChart(traffic, period) {
+            const labels = traffic.map(t => {
+                if (period === 'daily') return t.date.substring(5); // MM-DD
+                if (period === 'weekly') return t.week;
+                return t.month;
+            });
+            const views = traffic.map(t => t.views);
+            const visitors = traffic.map(t => t.visitors);
+
+            if (_trafficChart) {
+                _trafficChart.destroy();
+            }
+
+            const ctx = document.getElementById('traffic-chart').getContext('2d');
+            _trafficChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Page Views',
+                            data: views,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: '#10b981',
+                            pointBorderColor: '#030704',
+                            pointBorderWidth: 2
+                        },
+                        {
+                            label: 'Unique Visitors',
+                            data: visitors,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: '#3b82f6',
+                            pointBorderColor: '#030704',
+                            pointBorderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#9ca3af',
+                                font: { size: 12 },
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#10b981',
+                            bodyColor: '#e5e7eb',
+                            borderColor: 'rgba(16, 185, 129, 0.2)',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#6b7280',
+                                font: { size: 11 }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#6b7280',
+                                font: { size: 11 },
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }

@@ -17,7 +17,7 @@ from app.config import settings
 from app.core.exceptions import ForbiddenError, RateLimitError
 from app.core.cache import get_cache
 from app.db.database import get_db
-from app.db.models import User, ApiKey, DailyUsage, TokenRevocation, Blacklist
+from app.db.models import User, ApiKey, DailyUsage, TokenRevocation, Blacklist, PageView
 from app.models.schemas import AdminBlacklistRequest, MessageResponse
 
 router = APIRouter()
@@ -534,4 +534,160 @@ async def get_login_attempts(
             }
             for attempt in attempts
         ]
+    }
+
+
+# ── GET /admin/analytics ───────────────────────────────────────────────────────
+@router.get("/analytics", dependencies=[Depends(verify_admin_key)])
+async def admin_analytics(
+    db: AsyncSession = Depends(get_db),
+    period: str = Query("daily", regex="^(daily|weekly|monthly)$"),
+):
+    """
+    Get website traffic analytics
+    - Daily: last 30 days
+    - Weekly: last 12 weeks
+    - Monthly: last 12 months
+    """
+    today = date.today()
+    
+    if period == "daily":
+        cutoff = today - timedelta(days=30)
+        
+        # Daily page views
+        result = await db.execute(
+            select(
+                PageView.date,
+                func.count(PageView.id).label("views"),
+                func.count(func.distinct(PageView.ip_address)).label("visitors"),
+            )
+            .where(PageView.date >= cutoff)
+            .group_by(PageView.date)
+            .order_by(PageView.date)
+        )
+        rows = result.all()
+        
+        traffic = [
+            {
+                "date": str(r.date),
+                "views": r.views,
+                "visitors": r.visitors,
+            }
+            for r in rows
+        ]
+        
+    elif period == "weekly":
+        cutoff = today - timedelta(weeks=12)
+        
+        # Weekly aggregation (ISO week)
+        result = await db.execute(
+            select(
+                func.strftime('%Y-W%W', PageView.date).label("week"),
+                func.count(PageView.id).label("views"),
+                func.count(func.distinct(PageView.ip_address)).label("visitors"),
+            )
+            .where(PageView.date >= cutoff)
+            .group_by("week")
+            .order_by("week")
+        )
+        rows = result.all()
+        
+        traffic = [
+            {
+                "week": r.week,
+                "views": r.views,
+                "visitors": r.visitors,
+            }
+            for r in rows
+        ]
+        
+    else:  # monthly
+        cutoff = today - timedelta(days=365)
+        
+        # Monthly aggregation
+        result = await db.execute(
+            select(
+                func.strftime('%Y-%m', PageView.date).label("month"),
+                func.count(PageView.id).label("views"),
+                func.count(func.distinct(PageView.ip_address)).label("visitors"),
+            )
+            .where(PageView.date >= cutoff)
+            .group_by("month")
+            .order_by("month")
+        )
+        rows = result.all()
+        
+        traffic = [
+            {
+                "month": r.month,
+                "views": r.views,
+                "visitors": r.visitors,
+            }
+            for r in rows
+        ]
+    
+    # Top countries (last 30 days)
+    country_result = await db.execute(
+        select(
+            PageView.country,
+            func.count(PageView.id).label("views"),
+            func.count(func.distinct(PageView.ip_address)).label("visitors"),
+        )
+        .where(
+            PageView.date >= today - timedelta(days=30),
+            PageView.country != None
+        )
+        .group_by(PageView.country)
+        .order_by(desc("views"))
+        .limit(10)
+    )
+    countries = [
+        {
+            "country": r.country,
+            "views": r.views,
+            "visitors": r.visitors,
+        }
+        for r in country_result.all()
+    ]
+    
+    # Top pages (last 30 days)
+    page_result = await db.execute(
+        select(
+            PageView.path,
+            func.count(PageView.id).label("views"),
+            func.count(func.distinct(PageView.ip_address)).label("visitors"),
+        )
+        .where(PageView.date >= today - timedelta(days=30))
+        .group_by(PageView.path)
+        .order_by(desc("views"))
+        .limit(10)
+    )
+    pages = [
+        {
+            "path": r.path,
+            "views": r.views,
+            "visitors": r.visitors,
+        }
+        for r in page_result.all()
+    ]
+    
+    # Total stats (last 30 days)
+    total_result = await db.execute(
+        select(
+            func.count(PageView.id).label("total_views"),
+            func.count(func.distinct(PageView.ip_address)).label("total_visitors"),
+        )
+        .where(PageView.date >= today - timedelta(days=30))
+    )
+    totals = total_result.one()
+    
+    return {
+        "period": period,
+        "traffic": traffic,
+        "top_countries": countries,
+        "top_pages": pages,
+        "totals": {
+            "views": totals.total_views or 0,
+            "visitors": totals.total_visitors or 0,
+        }
     }

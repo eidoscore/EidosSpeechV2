@@ -387,7 +387,11 @@ file_put_contents(<code class="text-emerald-400">'audio.mp3'</code>, <code class
                     }
                 }
             } catch (e) {
-                showToast('Failed to load user data.', 'error');
+                // Only show error if it's not a 401 (handled by auto-refresh)
+                if (e.status !== 401) {
+                    console.error('Failed to load user data:', e);
+                    showToast('Failed to load user data.', 'error');
+                }
             }
 
             // Logout

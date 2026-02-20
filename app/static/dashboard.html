@@ -408,14 +408,10 @@ file_put_contents(<code class="text-emerald-400">'audio.mp3'</code>, <code class
             document.getElementById('stat-chars-limit').textContent = u.chars_limit.toLocaleString();
             document.getElementById('dash-req').textContent = u.requests;
             document.getElementById('dash-req-limit').textContent = u.requests_limit;
-            document.getElementById('dash-chars').textContent = u.chars.toLocaleString();
-            document.getElementById('dash-chars-limit').textContent = u.chars_limit.toLocaleString();
 
             const rPct = Math.min(100, (u.requests / u.requests_limit) * 100);
-            const cPct = Math.min(100, (u.chars / u.chars_limit) * 100);
             document.getElementById('dash-req-bar').style.width = rPct + '%';
             document.getElementById('dash-req-bar').className = `h-full rounded-full transition-all ${rPct > 90 ? 'bg-red-500' : rPct > 70 ? 'bg-amber-500' : 'bg-brand-500'}`;
-            document.getElementById('dash-chars-bar').style.width = cPct + '%';
         }
 
         function maskKey(key) {

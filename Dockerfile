@@ -14,10 +14,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY app ./app
 COPY cleanup_duplicates.py .
+COPY run_migrations.py .
+COPY entrypoint.sh .
 COPY .env.example .
 
 # Create data directories
 RUN mkdir -p /app/data/db /app/data/cache
+
+# Make entrypoint executable
+RUN chmod +x entrypoint.sh
 
 # Create non-root user
 RUN useradd -m eidos && chown -R eidos:eidos /app
@@ -35,4 +40,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8001/api/v1/health || exit 1
 
 # Run command
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001", "--proxy-headers"]
+CMD ["./entrypoint.sh"]

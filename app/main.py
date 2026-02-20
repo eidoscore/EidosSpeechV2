@@ -275,6 +275,15 @@ async def tos_page():
     return JSONResponse({"error": "ToS page not found"}, status_code=404)
 
 
+@app.get("/privacy", include_in_schema=False)
+async def privacy_page():
+    """Privacy Policy"""
+    path = STATIC_DIR / "privacy.html"
+    if path.exists():
+        return FileResponse(str(path))
+    return JSONResponse({"error": "Privacy page not found"}, status_code=404)
+
+
 @app.get("/verify-email", include_in_schema=False)
 async def verify_email_page():
     """Email verification page"""

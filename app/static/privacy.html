@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy — eidosSpeech</title>
+    <meta name="description" content="Privacy Policy for eidosSpeech. How we handle your data.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://eidosspeech.xyz/privacy">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        body {
+            background: #050a06;
+            color: #e5e7eb;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .prose h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #f3f4f6;
+            margin: 2rem 0 .75rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, .06);
+        }
+
+        .prose p {
+            color: #9ca3af;
+            line-height: 1.75;
+            font-size: .9375rem;
+            margin-bottom: 1rem;
+        }
+
+        .prose ul {
+            color: #9ca3af;
+            line-height: 1.75;
+            font-size: .9375rem;
+            padding-left: 1.25rem;
+            list-style: disc;
+            margin-bottom: 1rem;
+        }
+
+        .prose li {
+            margin-bottom: .25rem;
+        }
+
+        .prose a {
+            color: #10b981;
+        }
+
+        .prose strong {
+            color: #e5e7eb;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+    <nav class="border-b border-white/[.06]" style="background:rgba(5,10,6,.9);">
+        <div class="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2">
+                <div
+                    class="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-bold text-xs">
+                    e</div>
+                <span class="font-bold text-white">eidosSpeech</span>
+            </a>
+            <a href="/app" class="text-sm text-gray-400 hover:text-white transition-colors">← Back to App</a>
+        </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto px-4 py-16">
+        <h1 class="text-3xl font-bold text-white mb-2">Privacy Policy</h1>
+        <p class="text-sm text-gray-600 mb-10">Last updated: February 2026</p>
+
+        <div class="prose">
+            <h2>1. Introduction</h2>
+            <p>eidosSpeech ("we", "our", or "the Service") respects your privacy. This policy explains what data we
+                collect and how we use it. By using our service, you agree to these practices.</p>
+
+            <h2>2. Information We Collect</h2>
+            <p><strong>Account Information:</strong> If you register, we collect your email address and a hashed
+                password.</p>
+            <p><strong>Usage Data:</strong> We log API requests, including IP addresses, timestamps, character counts,
+                and voice selections. This is used for rate limiting, abuse prevention, and analytics.</p>
+            <p><strong>Text Content:</strong> The text you submit for TTS generation is processed immediately and
+                temporarily cached to improve performance. We do not store your text content long-term or use it to
+                train
+                AI models.</p>
+
+            <h2>3. How We Use Your Data</h2>
+            <ul>
+                <li>To provide the TTS service and generate audio.</li>
+                <li>To enforce rate limits and prevent abuse.</li>
+                <li>To send transactional emails (verification, password reset).</li>
+                <li>To improve service performance and reliability.</li>
+            </ul>
+
+            <h2>4. Third-Party Services</h2>
+            <p>We use trusted third-party providers:</p>
+            <ul>
+                <li><strong>Microsoft Azure:</strong> Our TTS engine is powered by Microsoft Edge TTS. Text content is
+                    sent to Microsoft's servers for processing.</li>
+                <li><strong>eidosStack:</strong> Our authentication and infrastructure are part of the eidosStack
+                    ecosystem.</li>
+            </ul>
+
+            <h2>5. Data Retention</h2>
+            <p>We retain account information as long as your account is active. Usage logs are retained for a limited
+                period for security auditing. You may request account deletion at any time.</p>
+
+            <h2>6. Cookies and Storage</h2>
+            <p>We use local storage and session cookies solely for authentication and maintaining your login session. We
+                do not use third-party tracking cookies for advertising.</p>
+
+            <h2>7. Security</h2>
+            <p>We use industry-standard encryption (TLS/SSL) for data in transit and bcrypt for password hashing.
+                However, no transmission over the internet is 100% secure.</p>
+
+            <h2>8. Changes to This Policy</h2>
+            <p>We may update this policy periodically. Significant changes will be announced on our website.</p>
+
+            <h2>9. Contact</h2>
+            <p>If you have questions about this policy, please contact us via <a
+                    href="https://eidosstack.com">eidosStack</a>.</p>
+        </div>
+    </main>
+
+    <footer class="border-t border-white/[.05] py-8 mt-16">
+        <div class="max-w-4xl mx-auto px-4 text-center text-sm text-gray-600">
+            <a href="/" class="hover:text-gray-400 transition-colors">eidosSpeech</a> — Part of <a
+                href="https://eidosstack.com"
+                class="hover:text-gray-400 transition-colors text-emerald-700">eidosStack</a>
+        </div>
+    </footer>
+
+</body>
+
+</html>

@@ -1,24 +1,210 @@
 # GitHub Public APIs - Ready to Submit
 
-## 📋 Entry to Add (Copy This)
+## 📋 EXACT Entry to Add
 
-Find the **"Text - Speech"** section in README.md and add this line in alphabetical order:
+**Location:** Find the section in README.md (it's NOT "Text - Speech", it's under a different category)
+
+Based on the repo, eidosSpeech should go under **"Development"** or create new **"Text & Speech"** category.
+
+### Option 1: Add to "Development" Category
 
 ```markdown
 | [eidosSpeech](https://eidosspeech.xyz) | Free text-to-speech API with 1,200+ voices in 75+ languages | `apiKey` | Yes | Yes |
 ```
 
----
+### Option 2: If there's a Speech/Audio category
 
-## 📝 Pull Request Title (Copy This)
-
-```
-Add eidosSpeech - Free TTS API
+```markdown
+| [eidosSpeech](https://eidosspeech.xyz) | Free text-to-speech API with 1,200+ voices in 75+ languages | `apiKey` | Yes | Yes |
 ```
 
+**Note:** I saw "IBM Text to Speech" in the list, so find where that is and add eidosSpeech nearby in alphabetical order (eidosSpeech comes BEFORE IBM alphabetically).
+
 ---
 
-## 📄 Pull Request Description (Copy This)
+## 📝 Pull Request Title
+
+```
+Add eidosSpeech API
+```
+
+---
+
+## 📄 Pull Request Description
+
+```markdown
+## API Information
+- **Name:** eidosSpeech
+- **Website:** https://eidosspeech.xyz
+- **Documentation:** https://eidosspeech.xyz/api-docs
+- **Description:** Free text-to-speech API with 1,200+ neural voices across 75+ languages
+- **Authentication:** API Key (X-API-Key header)
+- **HTTPS:** ✅ Yes
+- **CORS:** ✅ Yes
+
+## Key Features
+- 🎙️ 1,200+ neural voices
+- 🌍 75+ languages (English, Indonesian, Japanese, Spanish, French, German, Chinese, Korean, etc.)
+- 🆓 Free tier: 30 requests/day for registered users
+- 🚀 Direct MP3 output
+- 💳 No credit card required
+- 📊 Rate limit headers
+- ⚡ File caching
+
+## Example Usage
+
+```bash
+curl -X POST https://eidosspeech.xyz/api/v1/tts \
+  -H "X-API-Key: esk_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Hello world","voice":"en-US-JennyNeural"}' \
+  --output audio.mp3
+```
+
+## Verification
+- [x] API has free tier
+- [x] API is publicly accessible
+- [x] API is well documented
+- [x] HTTPS enabled
+- [x] CORS enabled
+- [x] Added in alphabetical order
+- [x] Follows format guidelines
+- [x] Links are working
+```
+
+---
+
+## 🚀 EXACT Steps to Submit
+
+### Step 1: Fork Repository
+1. Go to: https://github.com/public-apis/public-apis
+2. Click **"Fork"** (top right)
+3. Wait for fork to complete
+
+### Step 2: Find the Right Category
+1. In your fork, open **`README.md`**
+2. Click the **pencil icon** (✏️) to edit
+3. Press `Ctrl+F` and search for: **`IBM Text to Speech`**
+4. This will show you the exact category and format
+5. Add eidosSpeech entry **BEFORE** IBM (alphabetically)
+
+### Step 3: Add Entry
+Copy-paste this line in the correct position:
+
+```markdown
+| [eidosSpeech](https://eidosspeech.xyz) | Free text-to-speech API with 1,200+ voices in 75+ languages | `apiKey` | Yes | Yes |
+```
+
+**IMPORTANT:** Make sure it's in alphabetical order!
+
+### Step 4: Commit
+1. Scroll down to "Commit changes"
+2. **Message:** `Add eidosSpeech API`
+3. **Description:** (leave blank)
+4. Select "Commit directly to the main branch"
+5. Click "Commit changes"
+
+### Step 5: Create PR
+1. Go to your fork's main page
+2. Click **"Contribute"** → **"Open pull request"**
+3. **Title:** `Add eidosSpeech API`
+4. **Description:** Copy the PR description from above
+5. Click **"Create pull request"**
+
+---
+
+## ✅ Pre-Submission Checklist
+
+Before clicking "Create pull request":
+- [ ] Entry is in alphabetical order
+- [ ] Format matches other entries exactly
+- [ ] All links work (test them!)
+- [ ] Used correct Auth type: `apiKey`
+- [ ] HTTPS: Yes
+- [ ] CORS: Yes
+- [ ] PR title is simple: "Add eidosSpeech API"
+- [ ] PR description is complete
+
+---
+
+## 📊 What Happens Next
+
+### Timeline
+- **Submission:** Immediate
+- **Bot Check:** Within minutes (checks format)
+- **Human Review:** 1-7 days
+- **Approval/Merge:** 1-14 days total
+
+### If Bot Rejects
+- Check alphabetical order
+- Check format (spaces, pipes, etc.)
+- Fix and resubmit
+
+### If Human Reviewer Comments
+- Respond within 24 hours
+- Make requested changes
+- Be polite and professional
+
+---
+
+## 🎯 After Merge - Expected Results
+
+### Traffic
+- 500-1,000 monthly visitors
+- High-quality developer audience
+- Long-term sustainable traffic
+
+### SEO
+- High DA backlink (90+)
+- Improved search rankings
+- Increased domain authority
+
+### Credibility
+- Listed with 1,400+ APIs
+- Developer trust
+- Social proof
+
+---
+
+## 💡 Pro Tips
+
+### Do's ✅
+- Follow exact format
+- Test all links first
+- Be patient with review
+- Respond to feedback quickly
+- Keep PR description detailed
+
+### Don'ts ❌
+- Don't spam multiple PRs
+- Don't argue with maintainers
+- Don't submit if API is down
+- Don't use wrong format
+- Don't forget alphabetical order
+
+---
+
+## 🔗 Quick Links
+
+- **Repo:** https://github.com/public-apis/public-apis
+- **Your Fork:** https://github.com/YOUR_USERNAME/public-apis (after forking)
+- **Contributing Guide:** https://github.com/public-apis/public-apis/blob/master/CONTRIBUTING.md
+
+---
+
+## 🚨 IMPORTANT NOTES
+
+1. **Find IBM Text to Speech first** - This shows you the exact category and format
+2. **Alphabetical order is CRITICAL** - eidosSpeech comes BEFORE IBM
+3. **Format must be EXACT** - Copy the pipe format exactly
+4. **Test links** - Make sure eidosspeech.xyz works
+5. **Be patient** - Review can take up to 2 weeks
+
+---
+
+**Ready? Let's do this!** 🚀
+
+The entire process takes 10-15 minutes. This is one of the most valuable backlinks you can get!
 
 ```markdown
 ## API Information

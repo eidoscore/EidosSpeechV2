@@ -202,6 +202,34 @@ async def not_found_handler(request: Request, exc):
     return RedirectResponse(url="/")
 
 
+# ── SEO & Favicon Routes ──────────────────────────────────────────────────────
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Serve favicon"""
+    path = STATIC_DIR / "favicon.ico"
+    if path.exists():
+        return FileResponse(str(path), media_type="image/x-icon")
+    return JSONResponse({}, status_code=404)
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots_txt():
+    """Serve robots.txt for SEO"""
+    path = STATIC_DIR / "robots.txt"
+    if path.exists():
+        return FileResponse(str(path), media_type="text/plain")
+    return JSONResponse({}, status_code=404)
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap_xml():
+    """Serve sitemap.xml for SEO"""
+    path = STATIC_DIR / "sitemap.xml"
+    if path.exists():
+        return FileResponse(str(path), media_type="application/xml")
+    return JSONResponse({}, status_code=404)
+
+
 # ── API Routes ─────────────────────────────────────────────────────────────────
 from app.api.v1 import router as api_v1_router
 app.include_router(api_v1_router, prefix="/api/v1")

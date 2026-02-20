@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /app
+Allow: /api-docs
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /static/js/
+
+Sitemap: https://eidosspeech.xyz/sitemap.xml

@@ -277,6 +277,15 @@ async def favicon():
     return JSONResponse({}, status_code=404)
 
 
+@app.get("/icon.png", include_in_schema=False)
+async def icon_png():
+    """Serve icon.png for logo"""
+    path = STATIC_DIR / "icon.png"
+    if path.exists():
+        return FileResponse(str(path), media_type="image/png")
+    return JSONResponse({}, status_code=404)
+
+
 @app.get("/robots.txt", include_in_schema=False)
 async def robots_txt():
     """Serve robots.txt for SEO"""

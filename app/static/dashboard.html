@@ -292,14 +292,17 @@ file_put_contents(<code class="text-emerald-400">'audio.mp3'</code>, <code class
                                     style="width:0%"></div>
                             </div>
                         </div>
-                        <div>
-                            <div class="flex justify-between text-xs text-gray-500 mb-2">
-                                <span>Characters</span>
-                                <span><span id="dash-chars">0</span> / <span id="dash-chars-limit">2,000</span></span>
-                            </div>
-                            <div class="h-2 rounded-full bg-white/5">
-                                <div id="dash-chars-bar" class="h-full rounded-full bg-brand-500 transition-all"
-                                    style="width:0%"></div>
+                        <div class="border-t border-white/5 pt-4">
+                            <div class="text-xs text-gray-500 mb-3">Character Limits per Request</div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-400">Web UI (this page)</span>
+                                    <span class="text-brand-400 font-mono">2,000 chars</span>
+                                </div>
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-400">API (via X-API-Key)</span>
+                                    <span class="text-gray-500 font-mono">1,000 chars</span>
+                                </div>
                             </div>
                         </div>
                     </div>

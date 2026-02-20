@@ -11,7 +11,7 @@ import time
 
 from fastapi import APIRouter, Depends, Request, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc, and_
+from sqlalchemy import select, func, desc, and_, delete as sql_delete
 
 from app.config import settings
 from app.core.exceptions import ForbiddenError, RateLimitError
@@ -378,7 +378,6 @@ async def admin_delete_user(
     - Audit logs
     - Login attempts
     """
-    from sqlalchemy import delete as sql_delete
     from app.db.models import AuditLog, LoginAttempt
     
     user = await db.get(User, user_id)

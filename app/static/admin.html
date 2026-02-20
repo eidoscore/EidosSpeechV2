@@ -11,6 +11,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root {
             color-scheme: dark;
@@ -243,6 +244,16 @@
                         </div>
                     </div>
 
+                    <!-- Usage Trend Chart -->
+                    <div class="card rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                            <span>📈</span> Usage Trend (Last 7 Days)
+                        </h3>
+                        <div class="relative" style="height: 200px;">
+                            <canvas id="overview-chart"></canvas>
+                        </div>
+                    </div>
+
                     <!-- System Info -->
                     <div class="card rounded-xl p-5">
                         <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
@@ -337,6 +348,27 @@
                             <option value="60">60 days</option>
                         </select>
                     </div>
+
+                    <!-- Usage Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="card rounded-xl p-5">
+                            <h3 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                                <span>📊</span> Requests Over Time
+                            </h3>
+                            <div class="relative" style="height: 250px;">
+                                <canvas id="requests-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card rounded-xl p-5">
+                            <h3 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                                <span>📝</span> Characters Over Time
+                            </h3>
+                            <div class="relative" style="height: 250px;">
+                                <canvas id="characters-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card rounded-xl overflow-hidden">
                         <table class="w-full text-sm">
                             <thead class="border-b border-white/[.06]">
@@ -401,6 +433,9 @@
         let _adminKey = null;
         let _currentTab = 'overview';
         let _usersPage = 1;
+        let _requestsChart = null;
+        let _charactersChart = null;
+        let _overviewChart = null;
 
         function apiHeaders() {
             return { 'Content-Type': 'application/json', 'X-Admin-Key': _adminKey };
@@ -490,8 +525,106 @@
                 document.getElementById('s-cache-files').textContent = d.cache.files;
                 document.getElementById('s-cache-size').textContent = `${d.cache.size_mb} MB`;
                 document.getElementById('s-cache-percent').textContent = `${cachePercent}%`;
+                
+                // Load overview chart
+                loadOverviewChart();
             } catch (e) { 
                 showToast('Failed to load stats.', 'error'); 
+            }
+        }
+
+        async function loadOverviewChart() {
+            try {
+                const resp = await fetch('/api/v1/admin/usage?days=7', { headers: apiHeaders() });
+                const d = await resp.json();
+                const rows = [...d.days].reverse();
+                
+                const labels = rows.map(r => {
+                    const date = new Date(r.date);
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                });
+                const requests = rows.map(r => r.requests);
+
+                if (_overviewChart) {
+                    _overviewChart.destroy();
+                }
+
+                const ctx = document.getElementById('overview-chart').getContext('2d');
+                _overviewChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Requests',
+                            data: requests,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: '#10b981',
+                            pointBorderColor: '#030704',
+                            pointBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#10b981',
+                                bodyColor: '#e5e7eb',
+                                borderColor: 'rgba(16, 185, 129, 0.2)',
+                                borderWidth: 1,
+                                padding: 12,
+                                displayColors: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.parsed.y.toLocaleString() + ' requests';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.05)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#6b7280',
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.05)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#6b7280',
+                                    font: {
+                                        size: 11
+                                    },
+                                    callback: function(value) {
+                                        return value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('Failed to load overview chart:', e);
             }
         }
 
@@ -591,6 +724,9 @@
                 document.getElementById('usage-total-chars').textContent = totalChars.toLocaleString();
                 document.getElementById('usage-avg-req').textContent = avgReq.toLocaleString();
                 
+                // Update charts
+                updateUsageCharts(rows);
+                
                 // Populate table
                 if (rows.length === 0 || totalReq === 0) {
                     document.getElementById('usage-tbody').innerHTML = `
@@ -620,6 +756,124 @@
                     </tr>
                 `;
             }
+        }
+
+        function updateUsageCharts(rows) {
+            const labels = rows.map(r => {
+                const date = new Date(r.date);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+            const requests = rows.map(r => r.requests);
+            const characters = rows.map(r => r.chars);
+
+            // Chart.js default config for dark theme
+            const chartConfig = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#10b981',
+                        bodyColor: '#e5e7eb',
+                        borderColor: 'rgba(16, 185, 129, 0.2)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: {
+                                size: 11
+                            },
+                            callback: function(value) {
+                                return value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            };
+
+            // Requests Chart
+            if (_requestsChart) {
+                _requestsChart.destroy();
+            }
+            const reqCtx = document.getElementById('requests-chart').getContext('2d');
+            _requestsChart = new Chart(reqCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Requests',
+                        data: requests,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#10b981',
+                        pointBorderColor: '#030704',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: chartConfig
+            });
+
+            // Characters Chart
+            if (_charactersChart) {
+                _charactersChart.destroy();
+            }
+            const charCtx = document.getElementById('characters-chart').getContext('2d');
+            _charactersChart = new Chart(charCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Characters',
+                        data: characters,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#030704',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: chartConfig
+            });
         }
 
         async function loadBlacklist() {

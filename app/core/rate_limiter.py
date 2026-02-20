@@ -175,10 +175,18 @@ class RateLimiter:
         await db.flush()
 
         # Now SELECT the definitive row (always exists after above)
+        # Use scalars().first() to handle potential duplicates gracefully
         result = await db.execute(
             select(DailyUsage).where(*where_clause)
         )
-        usage = result.scalar_one()
+        usage = result.scalars().first()
+        
+        if not usage:
+            # Fallback: create if somehow missing
+            usage = DailyUsage(**insert_values)
+            db.add(usage)
+            await db.flush()
+        
         return usage
 
     def get_headers(self, ctx: RequestContext, usage) -> dict:

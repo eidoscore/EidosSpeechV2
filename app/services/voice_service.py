@@ -35,7 +35,7 @@ async def get_all_voices() -> list[dict]:
             voices = await edge_tts.list_voices()
             _voices_cache = [
                 {
-                    "id": v["Name"],
+                    "id": v.get("ShortName", v["Name"]),  # Use ShortName for cleaner ID format
                     "name": v.get("FriendlyName", v["Name"].split("-")[-1].replace("Neural", "").strip()),
                     "language": v.get("LocaleName", ""),
                     "language_code": v.get("Locale", ""),

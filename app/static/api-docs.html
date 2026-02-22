@@ -438,14 +438,14 @@ X-Cache-Hit: false</pre>
             <!-- Voice List Section -->
             <section id="voices-list" class="mb-16">
                 <h2 class="text-xl font-bold text-white mb-5">Available Voices by Language</h2>
-                <p class="text-gray-400 text-sm mb-6">Complete list of 1,200+ voice IDs you can use in the <code class="text-emerald-400 text-xs">voice</code> parameter. Voices are grouped by language, with multilingual voices shown in each relevant language section.</p>
+                <p class="text-gray-400 text-sm mb-6">Complete list of 1,200+ voice IDs you can use in the <code class="text-emerald-400 text-xs">voice</code> parameter. Select a language to see all available voices including multilingual ones.</p>
 
                 <!-- Language Filter -->
                 <div class="card rounded-2xl p-4 mb-6">
                     <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                        <label class="text-sm text-gray-400 whitespace-nowrap">Filter by language:</label>
+                        <label class="text-sm text-gray-400 whitespace-nowrap">Select language:</label>
                         <select id="voice-lang-filter" onchange="filterVoicesByLanguage()" class="flex-1 bg-[#0d1117] border border-[#21262d] rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-emerald-500">
-                            <option value="">All Languages (1,200+ voices)</option>
+                            <option value="">-- Choose a language --</option>
                         </select>
                         <input type="text" id="voice-search" oninput="filterVoicesByLanguage()" placeholder="Search voice name..." class="flex-1 bg-[#0d1117] border border-[#21262d] rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-emerald-500">
                     </div>
@@ -459,9 +459,15 @@ X-Cache-Hit: false</pre>
                 <!-- Voices Container -->
                 <div id="voices-container" class="space-y-4" style="display:none;"></div>
 
+                <!-- Initial Message -->
+                <div id="voices-initial" class="card rounded-2xl p-8 text-center">
+                    <div class="text-gray-400 mb-2">👆 Select a language above to view available voices</div>
+                    <div class="text-sm text-gray-500">Or use the search box to find specific voices</div>
+                </div>
+
                 <div class="card rounded-2xl p-5 bg-emerald-500/5 border-emerald-500/20 mt-6">
                     <p class="text-sm text-gray-400">
-                        <strong class="text-emerald-400">Note:</strong> All voices are powered by Microsoft Edge TTS Neural technology. Multilingual voices can speak multiple languages with native-like pronunciation. Use the <code class="text-emerald-400 text-xs">GET /api/v1/voices</code> endpoint to fetch this list programmatically.
+                        <strong class="text-emerald-400">Note:</strong> All voices are powered by Microsoft Edge TTS Neural technology. Multilingual voices (marked with 🌍) can speak multiple languages with native-like pronunciation. Use the <code class="text-emerald-400 text-xs">GET /api/v1/voices</code> endpoint to fetch this list programmatically.
                     </p>
                 </div>
             </section>
@@ -482,23 +488,47 @@ X-Cache-Hit: false</pre>
                 const data = await resp.json();
                 allVoicesData = data.voices || [];
 
-                // Populate language filter
+                // Populate language filter with sorted languages
                 const langCodes = [...new Set(allVoicesData.map(v => v.language_code))].sort();
                 const langFilter = document.getElementById('voice-lang-filter');
                 const displayNames = new Intl.DisplayNames(['en'], { type: 'language' });
 
-                langCodes.forEach(code => {
+                // Prioritize popular languages
+                const popularLangs = ['id-ID', 'en-US', 'en-GB', 'ja-JP', 'ko-KR', 'zh-CN', 'es-ES', 'fr-FR', 'de-DE', 'ar-SA'];
+                const priorityLangs = popularLangs.filter(l => langCodes.includes(l));
+                const otherLangs = langCodes.filter(l => !popularLangs.includes(l));
+
+                // Add popular languages first
+                priorityLangs.forEach(code => {
                     try {
                         const name = displayNames.of(code);
-                        langFilter.innerHTML += `<option value="${code}">${name} (${code})</option>`;
+                        const count = allVoicesData.filter(v => v.language_code === code || v.is_multilingual).length;
+                        langFilter.innerHTML += `<option value="${code}">${name} (${code}) - ${count} voices</option>`;
                     } catch (e) {
-                        langFilter.innerHTML += `<option value="${code}">${code}</option>`;
+                        const count = allVoicesData.filter(v => v.language_code === code || v.is_multilingual).length;
+                        langFilter.innerHTML += `<option value="${code}">${code} - ${count} voices</option>`;
+                    }
+                });
+
+                // Add separator
+                if (otherLangs.length > 0) {
+                    langFilter.innerHTML += `<option disabled>──────────</option>`;
+                }
+
+                // Add other languages
+                otherLangs.forEach(code => {
+                    try {
+                        const name = displayNames.of(code);
+                        const count = allVoicesData.filter(v => v.language_code === code || v.is_multilingual).length;
+                        langFilter.innerHTML += `<option value="${code}">${name} (${code}) - ${count} voices</option>`;
+                    } catch (e) {
+                        const count = allVoicesData.filter(v => v.language_code === code || v.is_multilingual).length;
+                        langFilter.innerHTML += `<option value="${code}">${code} - ${count} voices</option>`;
                     }
                 });
 
                 document.getElementById('voices-loading').style.display = 'none';
-                document.getElementById('voices-container').style.display = 'block';
-                filterVoicesByLanguage();
+                document.getElementById('voices-initial').style.display = 'block';
             } catch (e) {
                 document.getElementById('voices-loading').innerHTML = '<div class="text-red-400">Failed to load voices. Please refresh the page.</div>';
             }
@@ -508,6 +538,7 @@ X-Cache-Hit: false</pre>
             const selectedLang = document.getElementById('voice-lang-filter').value;
             const searchTerm = document.getElementById('voice-search').value.toLowerCase();
             const container = document.getElementById('voices-container');
+            const initial = document.getElementById('voices-initial');
 
             let filtered = allVoicesData;
 
@@ -520,13 +551,21 @@ X-Cache-Hit: false</pre>
                 );
             }
 
-            if (selectedLang) {
-                // Show voices for selected language + multilingual voices
-                filtered = filtered.filter(v => v.language_code === selectedLang || v.is_multilingual);
-                displayVoicesByLanguage(container, filtered, selectedLang);
+            if (selectedLang || searchTerm) {
+                initial.style.display = 'none';
+                container.style.display = 'block';
+
+                if (selectedLang) {
+                    // Show voices for selected language + multilingual voices
+                    filtered = filtered.filter(v => v.language_code === selectedLang || v.is_multilingual);
+                    displayVoicesByLanguage(container, filtered, selectedLang);
+                } else {
+                    // Search only - show results grouped by language
+                    displaySearchResults(container, filtered);
+                }
             } else {
-                // Show all voices grouped by language
-                displayAllVoicesGrouped(container, filtered);
+                initial.style.display = 'block';
+                container.style.display = 'none';
             }
         }
 
@@ -537,14 +576,14 @@ X-Cache-Hit: false</pre>
             let html = '';
 
             if (native.length > 0) {
-                html += createLanguageSection(langCode, native, false);
+                html += createLanguageSection(langCode, native, 'Native Voices');
             }
 
             if (multilingual.length > 0) {
                 html += `<div class="card rounded-2xl p-5 border-amber-500/20 bg-amber-500/5">
                     <h3 class="text-base font-semibold text-white mb-3 flex items-center gap-2">
                         <span class="text-xl">🌍</span> Multilingual Voices
-                        <span class="text-xs text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded">Can speak multiple languages</span>
+                        <span class="text-xs text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded">${multilingual.length} voices - Can speak multiple languages</span>
                     </h3>
                     ${createVoiceGrid(multilingual)}
                 </div>`;
@@ -553,40 +592,40 @@ X-Cache-Hit: false</pre>
             container.innerHTML = html || '<div class="card rounded-2xl p-5 text-gray-400 text-center">No voices found.</div>';
         }
 
-        function displayAllVoicesGrouped(container, voices) {
+        function displaySearchResults(container, voices) {
+            if (voices.length === 0) {
+                container.innerHTML = '<div class="card rounded-2xl p-5 text-gray-400 text-center">No voices found matching your search.</div>';
+                return;
+            }
+
             const langCodes = [...new Set(voices.map(v => v.language_code))].sort();
-            const displayNames = new Intl.DisplayNames(['en'], { type: 'language' });
+            let html = `<div class="card rounded-2xl p-4 mb-4 bg-blue-500/5 border-blue-500/20">
+                <div class="text-sm text-blue-400">Found ${voices.length} voices across ${langCodes.length} languages</div>
+            </div>`;
 
-            let html = '';
-
-            // Show top 10 languages first
-            const topLangs = ['id-ID', 'en-US', 'en-GB', 'ja-JP', 'ko-KR', 'zh-CN', 'es-ES', 'fr-FR', 'de-DE', 'ar-SA'];
-            const priorityLangs = topLangs.filter(l => langCodes.includes(l));
-            const otherLangs = langCodes.filter(l => !topLangs.includes(l));
-
-            [...priorityLangs, ...otherLangs].forEach(langCode => {
+            langCodes.forEach(langCode => {
                 const langVoices = voices.filter(v => v.language_code === langCode);
                 if (langVoices.length > 0) {
-                    html += createLanguageSection(langCode, langVoices, true);
+                    html += createLanguageSection(langCode, langVoices, null);
                 }
             });
 
             container.innerHTML = html;
         }
 
-        function createLanguageSection(langCode, voices, showCount) {
+        function createLanguageSection(langCode, voices, subtitle) {
             const displayNames = new Intl.DisplayNames(['en'], { type: 'language' });
             let langName = langCode;
             try {
                 langName = displayNames.of(langCode);
             } catch (e) {}
 
-            const countBadge = showCount ? `<span class="text-xs text-gray-500 font-normal">${voices.length} voices</span>` : '';
+            const subtitleHtml = subtitle ? `<span class="text-xs text-gray-500 font-normal">${subtitle} (${voices.length})</span>` : `<span class="text-xs text-gray-500 font-normal">${voices.length} voices</span>`;
 
             return `<div class="card rounded-2xl p-5 mb-4">
                 <h3 class="text-base font-semibold text-white mb-3 flex items-center gap-2">
                     <span class="text-xl">${getLanguageFlag(langCode)}</span> ${langName} (${langCode})
-                    ${countBadge}
+                    ${subtitleHtml}
                 </h3>
                 ${createVoiceGrid(voices)}
             </div>`;

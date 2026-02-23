@@ -2,6 +2,9 @@ User-agent: *
 Allow: /
 Allow: /app
 Allow: /api-docs
+Allow: /blog
+Allow: /tos
+Allow: /privacy
 Disallow: /admin
 Disallow: /dashboard
 Disallow: /api/

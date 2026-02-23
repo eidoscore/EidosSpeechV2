@@ -215,7 +215,7 @@ async def add_security_headers(request: Request, call_next):
         "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self' data: https://sstatic1.histats.com; "
         "media-src 'self' blob:; "
-        "connect-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; "
+        "connect-src 'self' blob: https://cdn.jsdelivr.net https://challenges.cloudflare.com; "
         "frame-src https://challenges.cloudflare.com; "
         "frame-ancestors 'none';"
     )

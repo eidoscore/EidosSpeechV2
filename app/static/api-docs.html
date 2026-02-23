@@ -310,26 +310,103 @@ X-Cache-Hit: false</pre>
                     <span class="method-post text-xs font-bold px-2.5 py-1 rounded-lg font-mono">POST</span>
                     <h2 class="text-xl font-bold text-white font-mono">/tts</h2>
                 </div>
-                <p class="text-gray-400 text-sm mb-6">Generate speech from text. Returns MP3 audio bytes directly.</p>
+                <p class="text-gray-400 text-sm mb-6">Generate speech from text using 1,200+ neural voices. Returns MP3 audio bytes directly. Supports voice customization with rate, pitch, and volume controls.</p>
 
                 <div class="card rounded-2xl p-5 mb-4">
                     <h3 class="text-sm font-semibold text-white mb-3">Request Body</h3>
                     <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto">{
-  <span style="color:#93c5fd">"text"</span>:   <span style="color:#34d399">"Your text here"</span>,      <span class="text-gray-600">// required</span>
+  <span style="color:#93c5fd">"text"</span>:   <span style="color:#34d399">"Your text here"</span>,      <span class="text-gray-600">// required, max 2000 chars (registered)</span>
   <span style="color:#93c5fd">"voice"</span>:  <span style="color:#34d399">"id-ID-GadisNeural"</span>,  <span class="text-gray-600">// optional, default: id-ID-GadisNeural</span>
   <span style="color:#93c5fd">"rate"</span>:   <span style="color:#34d399">"+0%"</span>,                 <span class="text-gray-600">// optional, range: -50% to +100%</span>
   <span style="color:#93c5fd">"pitch"</span>:  <span style="color:#34d399">"+0Hz"</span>,                <span class="text-gray-600">// optional, range: -50Hz to +50Hz</span>
-  <span style="color:#93c5fd">"volume"</span>: <span style="color:#34d399">"+0%"</span>                  <span class="text-gray-600">// optional, range: -50% to +50%</span>
+  <span style="color:#93c5fd">"volume"</span>: <span style="color:#34d399">"+0%"</span>,                 <span class="text-gray-600">// optional, range: -50% to +50%</span>
+  <span style="color:#93c5fd">"style"</span>:  <span style="color:#34d399">"cheerful"</span>,            <span class="text-gray-600">// optional, emotion/style (voice-specific)</span>
+  <span style="color:#93c5fd">"style_degree"</span>: <span style="color:#34d399">1.0</span>              <span class="text-gray-600">// optional, style intensity (0.01-2.0)</span>
 }</pre>
                 </div>
 
+                <div class="card rounded-2xl p-5 mb-4">
+                    <h3 class="text-sm font-semibold text-white mb-3">cURL Example</h3>
+                    <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto">curl -X POST https://eidosspeech.xyz/api/v1/tts \
+  -H <span style="color:#34d399">"X-API-Key: esk_your_api_key_here"</span> \
+  -H <span style="color:#34d399">"Content-Type: application/json"</span> \
+  -d <span style="color:#34d399">'{
+    "text": "Hello, this is a test of the text to speech API.",
+    "voice": "en-US-JennyNeural",
+    "rate": "+10%",
+    "pitch": "+5Hz"
+  }'</span> \
+  --output audio.mp3</pre>
+                </div>
+
+                <div class="card rounded-2xl p-5 mb-4">
+                    <h3 class="text-sm font-semibold text-white mb-3">Python Example</h3>
+                    <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto"><span style="color:#c678dd">import</span> requests
+
+response = requests.post(
+    <span style="color:#34d399">"https://eidosspeech.xyz/api/v1/tts"</span>,
+    headers={<span style="color:#34d399">"X-API-Key"</span>: <span style="color:#34d399">"esk_your_api_key"</span>},
+    json={
+        <span style="color:#34d399">"text"</span>: <span style="color:#34d399">"Halo, selamat datang di eidosSpeech!"</span>,
+        <span style="color:#34d399">"voice"</span>: <span style="color:#34d399">"id-ID-GadisNeural"</span>,
+        <span style="color:#34d399">"rate"</span>: <span style="color:#34d399">"+0%"</span>
+    }
+)
+
+<span style="color:#c678dd">if</span> response.status_code == <span style="color:#d19a66">200</span>:
+    <span style="color:#c678dd">with</span> <span style="color:#61afef">open</span>(<span style="color:#34d399">"output.mp3"</span>, <span style="color:#34d399">"wb"</span>) <span style="color:#c678dd">as</span> f:
+        f.write(response.content)
+    <span style="color:#61afef">print</span>(<span style="color:#34d399">f"Remaining: {response.headers.get('X-RateLimit-Remaining-Day')}"</span>)
+<span style="color:#c678dd">else</span>:
+    <span style="color:#61afef">print</span>(response.json())</pre>
+                </div>
+
+                <div class="card rounded-2xl p-5 mb-4">
+                    <h3 class="text-sm font-semibold text-white mb-3">JavaScript Example</h3>
+                    <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto"><span style="color:#c678dd">const</span> response = <span style="color:#c678dd">await</span> <span style="color:#61afef">fetch</span>(<span style="color:#34d399">'https://eidosspeech.xyz/api/v1/tts'</span>, {
+  method: <span style="color:#34d399">'POST'</span>,
+  headers: {
+    <span style="color:#34d399">'X-API-Key'</span>: <span style="color:#34d399">'esk_your_api_key'</span>,
+    <span style="color:#34d399">'Content-Type'</span>: <span style="color:#34d399">'application/json'</span>
+  },
+  body: JSON.<span style="color:#61afef">stringify</span>({
+    text: <span style="color:#34d399">'Welcome to eidosSpeech API!'</span>,
+    voice: <span style="color:#34d399">'en-US-AriaNeural'</span>,
+    rate: <span style="color:#34d399">'+0%'</span>,
+    pitch: <span style="color:#34d399">'+0Hz'</span>
+  })
+});
+
+<span style="color:#c678dd">const</span> audioBlob = <span style="color:#c678dd">await</span> response.<span style="color:#61afef">blob</span>();
+<span style="color:#c678dd">const</span> audioUrl = URL.<span style="color:#61afef">createObjectURL</span>(audioBlob);
+<span style="color:#c678dd">const</span> audio = <span style="color:#c678dd">new</span> <span style="color:#61afef">Audio</span>(audioUrl);
+audio.<span style="color:#61afef">play</span>();</pre>
+                </div>
+
                 <div class="card rounded-2xl p-5">
-                    <h3 class="text-sm font-semibold text-white mb-3">Response</h3>
+                    <h3 class="text-sm font-semibold text-white mb-3">Response & Errors</h3>
                     <div class="grid sm:grid-cols-2 gap-3">
                         <div>
                             <div class="text-xs text-emerald-400 mb-1.5">✓ 200 OK</div>
                             <pre class="code-block rounded-lg p-3 text-xs text-gray-400">Content-Type: audio/mpeg
+X-RateLimit-Remaining-Day: 29
+X-Cache-Hit: false
+
 (MP3 audio bytes)</pre>
+                        </div>
+                        <div>
+                            <div class="text-xs text-red-400 mb-1.5">✕ 400 Bad Request</div>
+                            <pre class="code-block rounded-lg p-3 text-xs text-gray-400">{
+  "error": "ValidationError",
+  "message": "Text exceeds 2000 characters"
+}</pre>
+                        </div>
+                        <div>
+                            <div class="text-xs text-red-400 mb-1.5">✕ 401 Unauthorized</div>
+                            <pre class="code-block rounded-lg p-3 text-xs text-gray-400">{
+  "error": "AuthenticationError",
+  "message": "Invalid or expired API key"
+}</pre>
                         </div>
                         <div>
                             <div class="text-xs text-red-400 mb-1.5">✕ 429 Too Many Requests</div>
@@ -351,7 +428,7 @@ X-Cache-Hit: false</pre>
                     <h2 class="text-xl font-bold text-white font-mono">/tts/script</h2>
                     <span class="text-[10px] px-2 py-1 rounded bg-brand-500/20 text-brand-400 font-semibold">NEW v2.1</span>
                 </div>
-                <p class="text-gray-400 text-sm mb-6">Generate multi-voice dialog audio from script. Registered users only. Returns merged MP3 audio.</p>
+                <p class="text-gray-400 text-sm mb-6">Generate multi-voice dialog audio from script. Perfect for podcasts, audiobooks, and conversational content. Registered users only. Returns merged MP3 audio with natural pauses between speakers.</p>
 
                 <div class="card rounded-2xl p-5 mb-4">
                     <h3 class="text-sm font-semibold text-white mb-3">Request Body</h3>
@@ -361,7 +438,10 @@ X-Cache-Hit: false</pre>
     <span style="color:#93c5fd">"John"</span>: <span style="color:#34d399">"en-US-GuyNeural"</span>,
     <span style="color:#93c5fd">"Mary"</span>: <span style="color:#34d399">"en-US-JennyNeural"</span>
   },
-  <span style="color:#93c5fd">"pause_ms"</span>: <span style="color:#34d399">500</span>                                   <span class="text-gray-600">// optional, pause between lines (0-2000ms)</span>
+  <span style="color:#93c5fd">"pause_ms"</span>: <span style="color:#34d399">500</span>,                                  <span class="text-gray-600">// optional, pause between lines (0-2000ms, default: 500)</span>
+  <span style="color:#93c5fd">"rate"</span>: <span style="color:#34d399">"+0%"</span>,                                     <span class="text-gray-600">// optional, speech rate (-50% to +100%)</span>
+  <span style="color:#93c5fd">"pitch"</span>: <span style="color:#34d399">"+0Hz"</span>,                                    <span class="text-gray-600">// optional, pitch adjustment (-50Hz to +50Hz)</span>
+  <span style="color:#93c5fd">"volume"</span>: <span style="color:#34d399">"+0%"</span>                                    <span class="text-gray-600">// optional, volume level (-50% to +50%)</span>
 }</pre>
                 </div>
 
@@ -372,22 +452,121 @@ X-Cache-Hit: false</pre>
 [Mary]: I'm doing great, thanks for asking!
 [John]: That's wonderful to hear.
 [Mary]: How about you?</pre>
+                    <div class="mt-3 text-xs text-gray-500">
+                        <strong class="text-gray-400">Rules:</strong>
+                        <ul class="list-disc list-inside mt-1 space-y-1">
+                            <li>Speaker names are case-sensitive and must match voice_map keys</li>
+                            <li>Each speaker must have a corresponding voice in voice_map</li>
+                            <li>Empty lines are ignored</li>
+                            <li>Lines without [Speaker]: format will cause validation error</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card rounded-2xl p-5 mb-4">
+                    <h3 class="text-sm font-semibold text-white mb-3">cURL Example</h3>
+                    <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto">curl -X POST https://eidosspeech.xyz/api/v1/tts/script \
+  -H <span style="color:#34d399">"X-API-Key: esk_your_api_key_here"</span> \
+  -H <span style="color:#34d399">"Content-Type: application/json"</span> \
+  -d <span style="color:#34d399">'{
+    "script": "[Host]: Welcome to our podcast!\\n[Guest]: Thanks for having me!",
+    "voice_map": {
+      "Host": "en-US-GuyNeural",
+      "Guest": "en-US-JennyNeural"
+    },
+    "pause_ms": 800
+  }'</span> \
+  --output podcast.mp3</pre>
+                </div>
+
+                <div class="card rounded-2xl p-5 mb-4">
+                    <h3 class="text-sm font-semibold text-white mb-3">Python Example</h3>
+                    <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto"><span style="color:#c678dd">import</span> requests
+
+script = <span style="color:#34d399">"""[Narrator]: Once upon a time...
+[Character1]: Hello there!
+[Character2]: Hi! How are you?"""</span>
+
+response = requests.post(
+    <span style="color:#34d399">"https://eidosspeech.xyz/api/v1/tts/script"</span>,
+    headers={<span style="color:#34d399">"X-API-Key"</span>: <span style="color:#34d399">"esk_your_api_key"</span>},
+    json={
+        <span style="color:#34d399">"script"</span>: script,
+        <span style="color:#34d399">"voice_map"</span>: {
+            <span style="color:#34d399">"Narrator"</span>: <span style="color:#34d399">"en-US-AriaNeural"</span>,
+            <span style="color:#34d399">"Character1"</span>: <span style="color:#34d399">"en-US-GuyNeural"</span>,
+            <span style="color:#34d399">"Character2"</span>: <span style="color:#34d399">"en-US-JennyNeural"</span>
+        },
+        <span style="color:#34d399">"pause_ms"</span>: 600
+    }
+)
+
+<span style="color:#c678dd">if</span> response.status_code == <span style="color:#d19a66">200</span>:
+    <span style="color:#c678dd">with</span> <span style="color:#61afef">open</span>(<span style="color:#34d399">"output.mp3"</span>, <span style="color:#34d399">"wb"</span>) <span style="color:#c678dd">as</span> f:
+        f.write(response.content)
+<span style="color:#c678dd">else</span>:
+    <span style="color:#61afef">print</span>(response.json())</pre>
+                </div>
+
+                <div class="card rounded-2xl p-5 mb-4">
+                    <h3 class="text-sm font-semibold text-white mb-3">JavaScript Example</h3>
+                    <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto"><span style="color:#c678dd">const</span> script = <span style="color:#34d399">`[Host]: Welcome to the show!
+[Guest]: Thank you for having me!
+[Host]: Let's dive right in.`</span>;
+
+<span style="color:#c678dd">const</span> response = <span style="color:#c678dd">await</span> <span style="color:#61afef">fetch</span>(<span style="color:#34d399">'https://eidosspeech.xyz/api/v1/tts/script'</span>, {
+  method: <span style="color:#34d399">'POST'</span>,
+  headers: {
+    <span style="color:#34d399">'X-API-Key'</span>: <span style="color:#34d399">'esk_your_api_key'</span>,
+    <span style="color:#34d399">'Content-Type'</span>: <span style="color:#34d399">'application/json'</span>
+  },
+  body: JSON.<span style="color:#61afef">stringify</span>({
+    script: script,
+    voice_map: {
+      <span style="color:#34d399">'Host'</span>: <span style="color:#34d399">'en-US-GuyNeural'</span>,
+      <span style="color:#34d399">'Guest'</span>: <span style="color:#34d399">'en-US-JennyNeural'</span>
+    },
+    pause_ms: <span style="color:#d19a66">700</span>
+  })
+});
+
+<span style="color:#c678dd">const</span> audioBlob = <span style="color:#c678dd">await</span> response.<span style="color:#61afef">blob</span>();
+<span style="color:#c678dd">const</span> audioUrl = URL.<span style="color:#61afef">createObjectURL</span>(audioBlob);
+<span style="color:#c678dd">const</span> audio = <span style="color:#c678dd">new</span> <span style="color:#61afef">Audio</span>(audioUrl);
+audio.<span style="color:#61afef">play</span>();</pre>
                 </div>
 
                 <div class="card rounded-2xl p-5">
-                    <h3 class="text-sm font-semibold text-white mb-3">Response</h3>
+                    <h3 class="text-sm font-semibold text-white mb-3">Response & Errors</h3>
                     <div class="grid sm:grid-cols-2 gap-3">
                         <div>
                             <div class="text-xs text-emerald-400 mb-1.5">✓ 200 OK</div>
                             <pre class="code-block rounded-lg p-3 text-xs text-gray-400">Content-Type: audio/mpeg
+X-RateLimit-Remaining-Day: 9
+
 (Merged MP3 audio bytes)</pre>
+                        </div>
+                        <div>
+                            <div class="text-xs text-red-400 mb-1.5">✕ 400 Bad Request</div>
+                            <pre class="code-block rounded-lg p-3 text-xs text-gray-400">{
+  "error": "ValidationError",
+  "message": "Speaker 'John' not found in voice_map"
+}</pre>
                         </div>
                         <div>
                             <div class="text-xs text-red-400 mb-1.5">✕ 403 Forbidden</div>
                             <pre class="code-block rounded-lg p-3 text-xs text-gray-400">{
   "error": "ForbiddenError",
-  "message": "Multi-voice script requires registration"
+  "message": "Multi-voice requires registration"
 }</pre>
+                        </div>
+                        <div>
+                            <div class="text-xs text-red-400 mb-1.5">✕ 429 Too Many Requests</div>
+                            <pre class="code-block rounded-lg p-3 text-xs text-gray-400">{
+  "error": "RateLimitError",
+  "message": "Daily limit reached (10/day)"
+}
+<span class="text-amber-400">Retry-After: 43200</span></pre>
                         </div>
                     </div>
                 </div>
@@ -398,8 +577,14 @@ X-Cache-Hit: false</pre>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <div>
-                            <h4 class="text-sm font-semibold text-amber-400 mb-1">Rate Limits</h4>
-                            <p class="text-xs text-gray-400">Multi-voice script is CPU-intensive. Registered users: 10 requests/day, 2 requests/minute.</p>
+                            <h4 class="text-sm font-semibold text-amber-400 mb-2">Rate Limits & Best Practices</h4>
+                            <ul class="text-xs text-gray-400 space-y-1 list-disc list-inside">
+                                <li>Registered users: 10 requests/day, 2 requests/minute</li>
+                                <li>Character count includes all dialog text (excluding speaker names)</li>
+                                <li>Recommended pause_ms: 500-800ms for natural conversation</li>
+                                <li>Use consistent voice genders for better audio quality</li>
+                                <li>Test with short scripts first before generating long content</li>
+                            </ul>
                         </div>
                     </div>
                 </div>

@@ -504,6 +504,25 @@ async def blog_page():
     return JSONResponse({"error": "Blog not found"}, status_code=404)
 
 
+@app.get("/blog/{article_name}", include_in_schema=False)
+async def blog_article(article_name: str):
+    """Blog article pages"""
+    # Sanitize filename to prevent directory traversal
+    safe_name = article_name.replace("..", "").replace("/", "")
+    
+    # Add .html extension if not present
+    if not safe_name.endswith(".html"):
+        safe_name += ".html"
+    
+    path = STATIC_DIR / "blog" / safe_name
+    if path.exists() and path.is_file():
+        return FileResponse(str(path))
+    
+    # If article not found, redirect to blog index
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/blog")
+
+
 @app.get("/embed", include_in_schema=False)
 async def embed_player(
     text: str = Query(..., max_length=500, description="Text to synthesize"),

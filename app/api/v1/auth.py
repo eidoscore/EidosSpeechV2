@@ -557,8 +557,16 @@ async def resend_verification(
     ip = get_client_ip(request)
     email = body.email.lower().strip()
     
-    # Verify Turnstile if enabled
-    if settings.turnstile_enabled:
+    # Check if user is authenticated (from dashboard or admin panel)
+    is_authenticated = False
+    auth_header = request.headers.get("authorization", "")
+    admin_key = request.headers.get("x-admin-key", "")
+    
+    if auth_header.startswith("Bearer ") or admin_key:
+        is_authenticated = True
+    
+    # Verify Turnstile only for unauthenticated requests
+    if settings.turnstile_enabled and not is_authenticated:
         if not body.turnstile_token:
             raise ValidationError("Turnstile verification required")
         if not await verify_turnstile(body.turnstile_token, ip=ip):

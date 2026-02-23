@@ -26,7 +26,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="eidosSpeech — Free TTS App">
     <meta name="twitter:description" content="Convert text to speech online. 1,200+ voices, 75+ languages. Free.">
-    <meta name="twitter:image" content="https://eidosspeech.xyz/og-image.png">>
+    <meta name="twitter:image" content="https://eidosspeech.xyz/og-image.png">
     
     <!-- Breadcrumb Schema -->
     <script type="application/ld+json">
@@ -774,7 +774,13 @@
             // Apply favorites filter
             if (showingFavoritesOnly) {
                 const favorites = window.favoritesManager.getAll();
+                console.log('Filtering favorites:', favorites);
                 filtered = filtered.filter(v => favorites.includes(v.id));
+                console.log('Filtered voices:', filtered.length);
+                
+                if (filtered.length === 0) {
+                    showToast('No favorite voices yet. Click ⭐ to add favorites!', 'info', 3000);
+                }
             }
 
             // Sort: Native voices first, then Multilingual, then alphabetical

@@ -8,7 +8,7 @@ import logging
 import os
 import uuid
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -32,6 +32,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 STATIC_DIR = Path(__file__).parent / "static"
+
+# IP Geolocation cache (IP -> country code, expires after 24h)
+_ip_country_cache = {}
+_ip_cache_timestamps = {}
 
 
 # ── Periodic Cleanup Task ──────────────────────────────────────────────────────
@@ -283,16 +287,36 @@ class AnalyticsMiddleware(BaseHTTPMiddleware):
             if not client_ip:
                 client_ip = request.client.host if request.client else "unknown"
             
-            # Get country from IP (simple approach using ipapi.co free tier)
+            # Get country from IP with caching (24h TTL)
             country = None
-            try:
-                import httpx
-                async with httpx.AsyncClient(timeout=2.0) as client:
-                    resp = await client.get(f"https://ipapi.co/{client_ip}/country/")
-                    if resp.status_code == 200:
-                        country = resp.text.strip()[:2]  # ISO 2-letter code
-            except Exception:
-                pass  # Silently fail if GeoIP lookup fails
+            now = datetime.now(timezone.utc)
+            
+            # Check cache first
+            if client_ip in _ip_country_cache:
+                cache_time = _ip_cache_timestamps.get(client_ip)
+                if cache_time and (now - cache_time).total_seconds() < 86400:  # 24 hours
+                    country = _ip_country_cache[client_ip]
+                else:
+                    # Cache expired, remove it
+                    _ip_country_cache.pop(client_ip, None)
+                    _ip_cache_timestamps.pop(client_ip, None)
+            
+            # If not in cache, fetch from API
+            if country is None:
+                try:
+                    import httpx
+                    async with httpx.AsyncClient(timeout=2.0) as client:
+                        resp = await client.get(f"https://ipapi.co/{client_ip}/country/")
+                        if resp.status_code == 200:
+                            country = resp.text.strip()[:2]  # ISO 2-letter code
+                            # Cache the result
+                            _ip_country_cache[client_ip] = country
+                            _ip_cache_timestamps[client_ip] = now
+                        elif resp.status_code == 429:
+                            # Rate limited, use cached value if available or skip
+                            logger.warning(f"IP geolocation rate limited for {client_ip}")
+                except Exception as e:
+                    logger.debug(f"IP geolocation failed for {client_ip}: {e}")
             
             async with AsyncSessionLocal() as session:
                 page_view = PageView(

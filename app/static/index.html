@@ -280,6 +280,11 @@
                                 class="flex-1 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-500/50">
                                 <option value="">Loading voices...</option>
                             </select>
+                            <button id="preview-voice-btn" onclick="previewVoice()" class="w-10 h-10 rounded-xl bg-white/5 hover:bg-brand-500/20 flex items-center justify-center text-gray-400 hover:text-brand-400 transition-colors" title="Preview voice">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </button>
                             <button id="favorite-btn" onclick="toggleFavorite()" class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-500 hover:text-amber-400 transition-colors">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -814,6 +819,164 @@
                 : 'w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-500 hover:text-amber-400 transition-colors';
         }
 
+        // Voice preview functionality
+        let previewAudio = null;
+
+        async function previewVoice() {
+            const voiceId = document.getElementById('voice-select').value;
+            if (!voiceId) {
+                showToast('Please select a voice first', 'warning', 2000);
+                return;
+            }
+
+            const btn = document.getElementById('preview-voice-btn');
+            const originalHTML = btn.innerHTML;
+            
+            // Stop if already playing
+            if (previewAudio && !previewAudio.paused) {
+                previewAudio.pause();
+                previewAudio = null;
+                btn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+                return;
+            }
+
+            try {
+                btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+                btn.disabled = true;
+
+                // Get voice info for sample text
+                const voice = allVoices.find(v => v.id === voiceId);
+                const sampleTexts = {
+                    'en': 'Hello! This is a sample of my voice. How do I sound?',
+                    'id': 'Halo! Ini adalah contoh suara saya. Bagaimana menurut Anda?',
+                    'es': '¡Hola! Esta es una muestra de mi voz. ¿Cómo sueno?',
+                    'fr': 'Bonjour! Ceci est un échantillon de ma voix. Comment est-ce que je sonne?',
+                    'de': 'Hallo! Dies ist eine Probe meiner Stimme. Wie klinge ich?',
+                    'ja': 'こんにちは！これは私の声のサンプルです。どう聞こえますか？',
+                    'zh': '你好！这是我的声音样本。听起来怎么样？',
+                    'ko': '안녕하세요! 이것은 제 목소리 샘플입니다. 어떻게 들리나요?',
+                };
+                
+                const langCode = voice?.language_code?.split('-')[0] || 'en';
+                const sampleText = sampleTexts[langCode] || sampleTexts['en'];
+
+                const resp = await ApiClient.post('/tts', {
+                    text: sampleText,
+                    voice: voiceId,
+                    rate: 0,
+                    pitch: 0,
+                    volume: 0
+                });
+
+                if (resp.audio_url) {
+                    previewAudio = new Audio(resp.audio_url);
+                    
+                    btn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
+                    
+                    previewAudio.onended = () => {
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                        previewAudio = null;
+                    };
+                    
+                    previewAudio.onerror = () => {
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                        showToast('Failed to play preview', 'error', 2000);
+                        previewAudio = null;
+                    };
+                    
+                    await previewAudio.play();
+                } else {
+                    throw new Error('No audio URL returned');
+                }
+            } catch (err) {
+                console.error('Preview error:', err);
+                showToast('Failed to preview voice', 'error', 2000);
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        async function previewSpeakerVoice(speaker) {
+            const voiceId = document.getElementById(`voice-${speaker}`).value;
+            if (!voiceId) {
+                showToast('Please select a voice first', 'warning', 2000);
+                return;
+            }
+
+            // Find the button for this speaker
+            const speakerCard = document.querySelector(`#voice-${speaker}`).closest('.bg-\\[\\#0d1a0f\\]');
+            const btn = speakerCard?.querySelector('button[onclick*="previewSpeakerVoice"]');
+            if (!btn) return;
+
+            const originalHTML = btn.innerHTML;
+            
+            // Stop if already playing
+            if (previewAudio && !previewAudio.paused) {
+                previewAudio.pause();
+                previewAudio = null;
+                btn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+                return;
+            }
+
+            try {
+                btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+                btn.disabled = true;
+
+                const voice = allVoices.find(v => v.id === voiceId);
+                const sampleTexts = {
+                    'en': 'Hello! This is a sample of my voice. How do I sound?',
+                    'id': 'Halo! Ini adalah contoh suara saya. Bagaimana menurut Anda?',
+                    'es': '¡Hola! Esta es una muestra de mi voz. ¿Cómo sueno?',
+                    'fr': 'Bonjour! Ceci est un échantillon de ma voix. Comment est-ce que je sonne?',
+                    'de': 'Hallo! Dies ist eine Probe meiner Stimme. Wie klinge ich?',
+                    'ja': 'こんにちは！これは私の声のサンプルです。どう聞こえますか？',
+                    'zh': '你好！这是我的声音样本。听起来怎么样？',
+                    'ko': '안녕하세요! 이것은 제 목소리 샘플입니다. 어떻게 들리나요?',
+                };
+                
+                const langCode = voice?.language_code?.split('-')[0] || 'en';
+                const sampleText = sampleTexts[langCode] || sampleTexts['en'];
+
+                const resp = await ApiClient.post('/tts', {
+                    text: sampleText,
+                    voice: voiceId,
+                    rate: 0,
+                    pitch: 0,
+                    volume: 0
+                });
+
+                if (resp.audio_url) {
+                    previewAudio = new Audio(resp.audio_url);
+                    
+                    btn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
+                    
+                    previewAudio.onended = () => {
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                        previewAudio = null;
+                    };
+                    
+                    previewAudio.onerror = () => {
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                        showToast('Failed to play preview', 'error', 2000);
+                        previewAudio = null;
+                    };
+                    
+                    await previewAudio.play();
+                } else {
+                    throw new Error('No audio URL returned');
+                }
+            } catch (err) {
+                console.error('Preview error:', err);
+                showToast('Failed to preview voice', 'error', 2000);
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
         function toggleFavoritesFilter() {
             showingFavoritesOnly = !showingFavoritesOnly;
             const btn = document.getElementById('filter-favorites');
@@ -901,6 +1064,12 @@
                                 <option value="">Select voice...</option>
                                 ${allVoices.map(v => `<option value="${v.id}" ${v.id === currentVoice ? 'selected' : ''}>${v.name} (${v.language_code} · ${v.gender})</option>`).join('')}
                             </select>
+                            <button onclick="previewSpeakerVoice('${speaker}')" 
+                                class="w-10 h-10 rounded-xl bg-white/5 hover:bg-brand-500/20 flex items-center justify-center text-gray-400 hover:text-brand-400 transition-colors" title="Preview voice">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </button>
                             <button onclick="filterSpeakerFavorites('${speaker}')" 
                                 class="text-xs px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-brand-400 transition-colors whitespace-nowrap">
                                 ⭐ Favs

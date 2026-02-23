@@ -261,8 +261,23 @@ file_put_contents(<code class="text-emerald-400">'audio.mp3'</code>, <code class
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-xs text-gray-500">Status</span>
-                            <span
+                            <span id="account-status"
                                 class="text-xs text-brand-400 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded-full">Verified</span>
+                        </div>
+                        <div id="unverified-notice" class="hidden bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                                <div class="flex-1">
+                                    <p class="text-xs text-amber-300 font-medium mb-1">Email Not Verified</p>
+                                    <p class="text-xs text-amber-400/80 mb-2">Please check your email and verify your account to unlock all features.</p>
+                                    <button onclick="resendVerification()" id="resend-btn"
+                                        class="text-xs bg-amber-500 hover:bg-amber-400 text-white font-medium px-3 py-1.5 rounded-lg transition-colors">
+                                        Resend Verification Email
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-xs text-gray-500">Tier</span>
@@ -377,6 +392,20 @@ file_put_contents(<code class="text-emerald-400">'audio.mp3'</code>, <code class
                         document.getElementById('account-joined').textContent = new Date(u.created_at).toLocaleDateString();
                     }
 
+                    // Update verification status
+                    const statusEl = document.getElementById('account-status');
+                    const unverifiedNotice = document.getElementById('unverified-notice');
+                    
+                    if (u.is_verified) {
+                        statusEl.textContent = 'Verified';
+                        statusEl.className = 'text-xs text-brand-400 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded-full';
+                        unverifiedNotice.classList.add('hidden');
+                    } else {
+                        statusEl.textContent = 'Unverified';
+                        statusEl.className = 'text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full';
+                        unverifiedNotice.classList.remove('hidden');
+                    }
+
                     // Replace placeholder API keys in code snippets
                     document.querySelectorAll('.api-key-placeholder').forEach(el => {
                         el.textContent = _apiKey || 'YOUR_API_KEY';
@@ -471,6 +500,45 @@ file_put_contents(<code class="text-emerald-400">'audio.mp3'</code>, <code class
             const text = el.textContent;
             await navigator.clipboard.writeText(text).catch(() => { });
             showToast('Copied!', 'success', 2000);
+        }
+
+        async function resendVerification() {
+            const btn = document.getElementById('resend-btn');
+            const originalText = btn.textContent;
+            
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            
+            try {
+                const user = AuthStore.getUser();
+                if (!user?.email) {
+                    throw new Error('Email not found');
+                }
+                
+                await ApiClient.auth.resendVerification(user.email);
+                showToast('Verification email sent! Please check your inbox.', 'success', 5000);
+                
+                // Disable button for 60 seconds
+                let countdown = 60;
+                btn.textContent = `Resent! Wait ${countdown}s`;
+                
+                const interval = setInterval(() => {
+                    countdown--;
+                    if (countdown > 0) {
+                        btn.textContent = `Resent! Wait ${countdown}s`;
+                    } else {
+                        clearInterval(interval);
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                    }
+                }, 1000);
+                
+            } catch (e) {
+                console.error('Resend verification failed:', e);
+                showToast(e.message || 'Failed to resend verification email', 'error');
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
         }
 
         init();

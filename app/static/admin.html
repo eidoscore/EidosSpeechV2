@@ -718,11 +718,12 @@
                             <div class="text-xs text-gray-600">${u.full_name || ''}</div>
                           </td>
                           <td class="px-4 py-3">
-                            <span class="${u.is_active ? 'text-emerald-400' : 'text-red-400'} text-xs">${u.is_active ? (u.is_verified ? 'Active' : 'Unverified') : 'Banned'}</span>
+                            <span class="${u.is_active ? (u.is_verified ? 'text-emerald-400' : 'text-amber-400') : 'text-red-400'} text-xs">${u.is_active ? (u.is_verified ? 'Active' : 'Unverified') : 'Banned'}</span>
                           </td>
                           <td class="px-4 py-3 font-mono text-xs text-gray-400">${u.usage_today}</td>
                           <td class="px-4 py-3 text-xs text-gray-500">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
                           <td class="px-4 py-3 text-right space-x-2">
+                            ${!u.is_verified && u.is_active ? `<button onclick="resendVerificationAdmin('${u.email}')" class="text-xs text-blue-400 hover:text-blue-300 transition-colors">Resend</button>` : ''}
                             ${u.is_active ? `<button onclick="banUser('${u.uuid}','${u.email}')" class="text-xs text-amber-400 hover:text-amber-300 transition-colors">Ban</button>` : '<span class="text-xs text-gray-600">Banned</span>'}
                             <button onclick="deleteUser('${u.uuid}','${u.email}')" class="text-xs text-red-400 hover:text-red-300 transition-colors">Delete</button>
                           </td>
@@ -767,6 +768,31 @@
             } else {
                 const err = await resp.json();
                 showToast(err.message || 'Failed to delete user.', 'error');
+            }
+        }
+
+        async function resendVerificationAdmin(email) {
+            if (!confirm(`Resend verification email to ${email}?`)) return;
+            
+            try {
+                const resp = await fetch('/api/v1/auth/resend-verification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...apiHeaders()
+                    },
+                    body: JSON.stringify({ email })
+                });
+                
+                if (resp.ok) {
+                    showToast(`Verification email sent to ${email}`, 'success');
+                } else {
+                    const err = await resp.json();
+                    showToast(err.message || 'Failed to resend verification email', 'error');
+                }
+            } catch (e) {
+                console.error('Resend verification failed:', e);
+                showToast('Failed to resend verification email', 'error');
             }
         }
 

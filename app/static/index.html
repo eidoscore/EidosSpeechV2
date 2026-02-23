@@ -854,63 +854,22 @@
                 btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
                 btn.disabled = true;
 
-                // Get voice info for sample text
-                const voice = allVoices.find(v => v.id === voiceId);
-                const sampleTexts = {
-                    'en': 'Hello! This is a sample of my voice. How do I sound?',
-                    'id': 'Halo! Ini adalah contoh suara saya. Bagaimana menurut Anda?',
-                    'es': '¡Hola! Esta es una muestra de mi voz. ¿Cómo sueno?',
-                    'fr': 'Bonjour! Ceci est un échantillon de ma voix. Comment est-ce que je sonne?',
-                    'de': 'Hallo! Dies ist eine Probe meiner Stimme. Wie klinge ich?',
-                    'ja': 'こんにちは！これは私の声のサンプルです。どう聞こえますか？',
-                    'zh': '你好！这是我的声音样本。听起来怎么样？',
-                    'ko': '안녕하세요! 이것은 제 목소리 샘플입니다. 어떻게 들리나요?',
-                };
+                // Use preview endpoint (no quota consumption, cached on server)
+                const previewUrl = `/api/v1/preview/${encodeURIComponent(voiceId)}`;
                 
-                const langCode = voice?.language_code?.split('-')[0] || 'en';
-                const sampleText = sampleTexts[langCode] || sampleTexts['en'];
-
-                // Use fetch directly to handle both authenticated and anonymous users
-                const headers = { 'Content-Type': 'application/json' };
-                const token = AuthStore.getToken();
-                if (token) headers['Authorization'] = `Bearer ${token}`;
-
-                const response = await fetch('/api/v1/tts', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({
-                        text: sampleText,
-                        voice: voiceId,
-                        rate: '+0%',
-                        pitch: '+0Hz',
-                        volume: '+0%'
-                    })
-                });
-
-                if (!response.ok) {
-                    const error = await response.json().catch(() => ({ detail: 'Failed to generate preview' }));
-                    throw new Error(error.detail || 'Failed to generate preview');
-                }
-
-                // Response is an audio file, create blob URL
-                const audioBlob = await response.blob();
-                const audioUrl = URL.createObjectURL(audioBlob);
-
-                previewAudio = new Audio(audioUrl);
+                previewAudio = new Audio(previewUrl);
                 
                 btn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
                 
                 previewAudio.onended = () => {
                     btn.innerHTML = originalHTML;
                     btn.disabled = false;
-                    URL.revokeObjectURL(audioUrl);
                     previewAudio = null;
                 };
                 
                 previewAudio.onerror = () => {
                     btn.innerHTML = originalHTML;
                     btn.disabled = false;
-                    URL.revokeObjectURL(audioUrl);
                     showToast('Failed to play preview', 'error', 2000);
                     previewAudio = null;
                 };
@@ -950,62 +909,22 @@
                 btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
                 btn.disabled = true;
 
-                const voice = allVoices.find(v => v.id === voiceId);
-                const sampleTexts = {
-                    'en': 'Hello! This is a sample of my voice. How do I sound?',
-                    'id': 'Halo! Ini adalah contoh suara saya. Bagaimana menurut Anda?',
-                    'es': '¡Hola! Esta es una muestra de mi voz. ¿Cómo sueno?',
-                    'fr': 'Bonjour! Ceci est un échantillon de ma voix. Comment est-ce que je sonne?',
-                    'de': 'Hallo! Dies ist eine Probe meiner Stimme. Wie klinge ich?',
-                    'ja': 'こんにちは！これは私の声のサンプルです。どう聞こえますか？',
-                    'zh': '你好！这是我的声音样本。听起来怎么样？',
-                    'ko': '안녕하세요! 이것은 제 목소리 샘플입니다. 어떻게 들리나요?',
-                };
+                // Use preview endpoint (no quota consumption, cached on server)
+                const previewUrl = `/api/v1/preview/${encodeURIComponent(voiceId)}`;
                 
-                const langCode = voice?.language_code?.split('-')[0] || 'en';
-                const sampleText = sampleTexts[langCode] || sampleTexts['en'];
-
-                // Use fetch directly to handle both authenticated and anonymous users
-                const headers = { 'Content-Type': 'application/json' };
-                const token = AuthStore.getToken();
-                if (token) headers['Authorization'] = `Bearer ${token}`;
-
-                const response = await fetch('/api/v1/tts', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({
-                        text: sampleText,
-                        voice: voiceId,
-                        rate: '+0%',
-                        pitch: '+0Hz',
-                        volume: '+0%'
-                    })
-                });
-
-                if (!response.ok) {
-                    const error = await response.json().catch(() => ({ detail: 'Failed to generate preview' }));
-                    throw new Error(error.detail || 'Failed to generate preview');
-                }
-
-                // Response is an audio file, create blob URL
-                const audioBlob = await response.blob();
-                const audioUrl = URL.createObjectURL(audioBlob);
-
-                previewAudio = new Audio(audioUrl);
+                previewAudio = new Audio(previewUrl);
                 
                 btn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
                 
                 previewAudio.onended = () => {
                     btn.innerHTML = originalHTML;
                     btn.disabled = false;
-                    URL.revokeObjectURL(audioUrl);
                     previewAudio = null;
                 };
                 
                 previewAudio.onerror = () => {
                     btn.innerHTML = originalHTML;
                     btn.disabled = false;
-                    URL.revokeObjectURL(audioUrl);
                     showToast('Failed to play preview', 'error', 2000);
                     previewAudio = null;
                 };

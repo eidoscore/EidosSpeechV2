@@ -1,11 +1,11 @@
 """
 eidosSpeech v2 — API v1 Router Registration
-Registers: auth, admin, tts, voices, health, batch (410)
+Registers: auth, admin, tts, voices, health, batch (410), preview
 """
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, admin, tts, voices, health, batch
+from app.api.v1 import auth, admin, tts, voices, health, batch, preview
 
 router = APIRouter()
 
@@ -26,3 +26,6 @@ router.include_router(health.router, tags=["health"])
 
 # Batch: /api/v1/batch/tts → 410 Gone
 router.include_router(batch.router, prefix="/batch", tags=["batch"])
+
+# Preview: /api/v1/preview/{voice_id} (no quota consumption)
+router.include_router(preview.router, tags=["preview"])

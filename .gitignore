@@ -41,6 +41,10 @@ data/
 *.sqlite
 *.sqlite3
 
+# ── Voice Preview Audio Files ─────────────────────────────
+# Generated on-demand, cached on server, don't commit to repo
+app/static/previews/*.mp3
+
 # ── Cache & Logs ──────────────────────────────────────────
 *.log
 *.log.*

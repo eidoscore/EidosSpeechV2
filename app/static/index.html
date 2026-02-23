@@ -818,6 +818,20 @@
         // Voice preview functionality
         let previewAudio = null;
 
+        // Helper function to extract error message
+        function getErrorMessage(err) {
+            if (err instanceof Error) {
+                return err.message;
+            }
+            if (typeof err === 'string') {
+                return err;
+            }
+            if (err && typeof err === 'object') {
+                return err.detail || err.message || JSON.stringify(err);
+            }
+            return 'An unknown error occurred';
+        }
+
         async function previewVoice() {
             const voiceId = document.getElementById('voice-select').value;
             if (!voiceId) {

@@ -1342,6 +1342,119 @@
             document.getElementById(`${id}-value`).textContent = displayVal;
         }
 
+        // ── Audio History Management ───────────────────────────────────────────────
+        const AudioHistory = {
+            STORAGE_KEY: 'eidosspeech_audio_history',
+            MAX_AGE_MS: 24 * 60 * 60 * 1000, // 24 hours
+
+            save(audioData) {
+                try {
+                    const history = this.getAll();
+                    const entry = {
+                        id: Date.now(),
+                        timestamp: Date.now(),
+                        text: audioData.text,
+                        voice: audioData.voice,
+                        voiceName: audioData.voiceName,
+                        audioBlob: audioData.audioBlob, // Store as base64
+                        srtContent: audioData.srtContent || null,
+                        cached: audioData.cached || false,
+                    };
+                    
+                    // Convert blob to base64 for storage
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        entry.audioBlob = reader.result;
+                        history.unshift(entry);
+                        
+                        // Keep only last 10 entries
+                        if (history.length > 10) history.splice(10);
+                        
+                        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
+                    };
+                    reader.readAsDataURL(audioData.audioBlob);
+                } catch (e) {
+                    console.error('Failed to save audio history:', e);
+                }
+            },
+
+            getAll() {
+                try {
+                    const data = localStorage.getItem(this.STORAGE_KEY);
+                    if (!data) return [];
+                    
+                    const history = JSON.parse(data);
+                    const now = Date.now();
+                    
+                    // Filter out expired entries (older than 24h)
+                    return history.filter(entry => (now - entry.timestamp) < this.MAX_AGE_MS);
+                } catch (e) {
+                    console.error('Failed to load audio history:', e);
+                    return [];
+                }
+            },
+
+            getLast() {
+                const history = this.getAll();
+                return history.length > 0 ? history[0] : null;
+            },
+
+            clear() {
+                localStorage.removeItem(this.STORAGE_KEY);
+            },
+
+            async restoreLast() {
+                const last = this.getLast();
+                if (!last) return false;
+
+                try {
+                    // Convert base64 back to blob
+                    const response = await fetch(last.audioBlob);
+                    const blob = await response.blob();
+                    
+                    // Restore audio player
+                    currentAudioBlob = blob;
+                    const url = URL.createObjectURL(blob);
+                    const player = document.getElementById('audio-player');
+                    player.src = url;
+
+                    // Show audio section
+                    document.getElementById('audio-section').classList.remove('hidden');
+                    document.getElementById('audio-voice-label').textContent = last.voiceName;
+                    document.getElementById('cache-badge').classList.toggle('hidden', !last.cached);
+
+                    // Download link
+                    const dlBtn = document.getElementById('download-btn');
+                    dlBtn.href = url;
+                    dlBtn.download = `tts_${last.voice}_${last.id}.mp3`;
+
+                    // SRT download button
+                    const srtBtn = document.getElementById('download-srt-btn');
+                    if (last.srtContent) {
+                        currentSrtContent = last.srtContent;
+                        const srtBlob = new Blob([last.srtContent], { type: 'text/plain' });
+                        const srtUrl = URL.createObjectURL(srtBlob);
+                        srtBtn.href = srtUrl;
+                        srtBtn.download = `tts_${last.voice}_${last.id}.srt`;
+                        srtBtn.classList.remove('hidden');
+                    } else {
+                        srtBtn.classList.add('hidden');
+                    }
+
+                    // Initialize waveform visualizer
+                    if (!waveformVisualizer) {
+                        waveformVisualizer = new WaveformVisualizer('waveform-canvas', player);
+                    }
+                    await waveformVisualizer.loadAudio(url);
+
+                    return true;
+                } catch (e) {
+                    console.error('Failed to restore audio:', e);
+                    return false;
+                }
+            }
+        };
+
         // ── TTS Generation ─────────────────────────────────────────────────────────
         async function generateTTS() {
             const text = document.getElementById('tts-text').value.trim();
@@ -1482,6 +1595,17 @@
                     waveformVisualizer = new WaveformVisualizer('waveform-canvas', player);
                 }
                 await waveformVisualizer.loadAudio(url);
+
+                // Save to history (24h localStorage cache)
+                const voiceName = voice.split('-').slice(2).join(' ');
+                AudioHistory.save({
+                    text: text,
+                    voice: voice,
+                    voiceName: voiceName,
+                    audioBlob: blob,
+                    srtContent: currentSrtContent,
+                    cached: cached,
+                });
 
                 player.play().catch(() => { });
                 showToast(cached ? '⚡ Served from cache' : 'Speech generated!', 'success', 3000);
@@ -1700,6 +1824,9 @@
             await loadVoices();
             await loadPresets();
             await loadVoiceStyles();
+
+            // Restore last audio from history (if exists and < 24h old)
+            await AudioHistory.restoreLast();
 
             // Voice select change listener
             document.getElementById('voice-select').addEventListener('change', () => {

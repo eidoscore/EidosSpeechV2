@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use eidosSpeech API: Complete Tutorial with Code Examples (Python, JavaScript, cURL)</title>
+    <meta name="description" content="Learn how to integrate eidosSpeech text-to-speech API into your applications. Complete tutorial with code examples in Python, JavaScript, Node.js, and cURL. Free API with 1,200+ voices.">
+    <meta name="keywords" content="eidosSpeech API tutorial, text to speech API guide, TTS API integration, Python TTS, JavaScript TTS, Node.js voice API, free TTS API tutorial">
+    <meta name="author" content="eidosSpeech Team">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://eidosspeech.xyz/blog/how-to-use-eidosspeech-api">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://eidosspeech.xyz/blog/how-to-use-eidosspeech-api">
+    <meta property="og:title" content="How to Use eidosSpeech API: Complete Tutorial">
+    <meta property="og:description" content="Step-by-step guide with code examples in Python, JavaScript, and cURL">
+    <meta property="og:image" content="https://eidosspeech.xyz/static/blog/images/api-1.jpg">
+    <meta property="og:site_name" content="eidosSpeech">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="eidosSpeech API Tutorial">
+    <meta name="twitter:description" content="Complete guide with Python, JavaScript, and cURL examples">
+    <meta name="twitter:image" content="https://eidosspeech.xyz/static/blog/images/api-1.jpg">
+
+    <!-- Article Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "How to Use eidosSpeech API: Complete Tutorial with Code Examples",
+      "description": "Comprehensive tutorial for integrating eidosSpeech TTS API with code examples in Python, JavaScript, and cURL",
+      "image": "https://eidosspeech.xyz/static/blog/images/api-1.jpg",
+      "author": {
+        "@type": "Organization",
+        "name": "eidosSpeech Team"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "eidosSpeech",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://eidosspeech.xyz/icon.png"
+        }
+      },
+      "datePublished": "2026-02-23",
+      "dateModified": "2026-02-23"
+    }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { color-scheme: dark; }
+        body { background: #050a06; color: #e5e7eb; font-family: 'Inter', sans-serif; }
+        .prose { max-width: 720px; }
+        .prose h2 { color: #fff; font-size: 1.875rem; font-weight: 700; margin-top: 3rem; margin-bottom: 1rem; }
+        .prose h3 { color: #fff; font-size: 1.5rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; }
+        .prose p { color: #d1d5db; line-height: 1.75; margin-bottom: 1.25rem; font-size: 1.0625rem; }
+        .prose ul { margin: 1.5rem 0; padding-left: 1.5rem; }
+        .prose li { color: #d1d5db; margin-bottom: 0.5rem; line-height: 1.75; }
+        .prose strong { color: #fff; font-weight: 600; }
+        .prose code { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875em; font-family: 'JetBrains Mono', monospace; }
+        .prose pre { background: #0d1117; border: 1px solid #21262d; border-radius: 0.75rem; padding: 1.25rem; overflow-x: auto; margin: 1.5rem 0; }
+        .prose pre code { background: transparent; padding: 0; color: #e6edf3; }
+        .prose a { color: #10b981; text-decoration: underline; }
+        .prose a:hover { color: #34d399; }
+        .prose img { border-radius: 1rem; margin: 2rem 0; }
+        .card { background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .08); }
+        .code-header { background: #161b22; border-bottom: 1px solid #21262d; padding: 0.75rem 1.25rem; border-radius: 0.75rem 0.75rem 0 0; font-size: 0.875rem; color: #8b949e; font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-40 border-b border-white/[.06]" style="background: rgba(5,10,6,.9); backdrop-filter: blur(16px);">
+        <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center text-white font-bold text-xs shadow shadow-brand-500/30">e</div>
+                <span class="font-bold text-white">eidosSpeech</span>
+            </a>
+            <div class="flex items-center gap-4">
+                <a href="/blog" class="text-sm text-gray-400 hover:text-white transition-colors">Blog</a>
+                <a href="/app" class="text-sm font-medium bg-brand-500 hover:bg-brand-400 text-white px-3 py-1.5 rounded-lg transition-colors">Try Free</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Article -->
+    <article class="max-w-4xl mx-auto px-4 py-12">
+        <!-- Breadcrumb -->
+        <nav class="text-sm text-gray-500 mb-8">
+            <a href="/" class="hover:text-brand-400">Home</a>
+            <span class="mx-2">/</span>
+            <a href="/blog" class="hover:text-brand-400">Blog</a>
+            <span class="mx-2">/</span>
+            <span class="text-gray-400">API Tutorial</span>
+        </nav>
+
+        <!-- Header -->
+        <header class="mb-12">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-xs px-3 py-1 rounded-full bg-brand-500/20 text-brand-400 font-semibold">Tutorial</span>
+                <time class="text-sm text-gray-500">February 23, 2026</time>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">How to Use eidosSpeech API: Complete Tutorial with Code Examples</h1>
+            <p class="text-xl text-gray-400 leading-relaxed">Learn how to integrate eidosSpeech text-to-speech API into your applications with step-by-step examples in Python, JavaScript, Node.js, and cURL.</p>
+        </header>
+
+        <!-- Hero Image -->
+        <img src="/static/blog/images/api-1.jpg" alt="eidosSpeech API integration code example" class="w-full rounded-2xl mb-12" loading="eager">
+
+        <!-- Content -->
+        <div class="prose">

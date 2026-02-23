@@ -1059,7 +1059,7 @@
             btnText.textContent = 'Generating...';
             
             try {
-                const resp = await apiClient.post('/api/v1/tts/script', {
+                const resp = await ApiClient.post('/tts/script', {
                     script: script,
                     voice_map: voiceMap,
                     pause_ms: pauseMs

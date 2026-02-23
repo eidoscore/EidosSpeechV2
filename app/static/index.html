@@ -877,14 +877,27 @@
             
             container.innerHTML = speakers.map(speaker => {
                 const currentVoice = scriptSpeakers[speaker] || '';
+                const isFav = currentVoice && window.favoritesManager.isFavorite(currentVoice);
+                
                 return `
-                    <div class="flex items-center gap-3">
-                        <label class="text-sm text-gray-400 w-32 truncate">${speaker}:</label>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-400 w-28 truncate">${speaker}:</label>
                         <select id="voice-${speaker}" onchange="updateSpeakerVoice('${speaker}')" 
                             class="flex-1 rounded-xl px-3 py-2 text-sm bg-[#0d1a0f] border border-white/10 focus:outline-none focus:border-brand-500/50">
                             <option value="">Select voice...</option>
                             ${allVoices.map(v => `<option value="${v.id}" ${v.id === currentVoice ? 'selected' : ''}>${v.name} (${v.language_code})</option>`).join('')}
                         </select>
+                        <button id="fav-${speaker}" onclick="toggleSpeakerFavorite('${speaker}')" 
+                            class="w-9 h-9 rounded-xl ${isFav ? 'bg-amber-500/20 text-amber-400' : 'bg-white/5 text-gray-500 hover:text-amber-400'} flex items-center justify-center transition-colors">
+                            ${isFav ? 
+                                '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>' :
+                                '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>'
+                            }
+                        </button>
+                        <button onclick="filterSpeakerVoices('${speaker}')" 
+                            class="text-xs px-2 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-brand-400 transition-colors whitespace-nowrap">
+                            ⭐ Favs
+                        </button>
                     </div>
                 `;
             }).join('');
@@ -893,6 +906,54 @@
         function updateSpeakerVoice(speaker) {
             const select = document.getElementById(`voice-${speaker}`);
             scriptSpeakers[speaker] = select.value;
+            
+            // Update favorite button
+            const voiceId = select.value;
+            const btn = document.getElementById(`fav-${speaker}`);
+            if (btn && voiceId) {
+                const isFav = window.favoritesManager.isFavorite(voiceId);
+                btn.className = isFav 
+                    ? 'w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center transition-colors'
+                    : 'w-9 h-9 rounded-xl bg-white/5 text-gray-500 hover:text-amber-400 flex items-center justify-center transition-colors';
+                btn.innerHTML = isFav 
+                    ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>'
+                    : '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>';
+            }
+        }
+
+        function toggleSpeakerFavorite(speaker) {
+            const select = document.getElementById(`voice-${speaker}`);
+            const voiceId = select.value;
+            
+            if (!voiceId) {
+                showToast('Please select a voice first', 'error', 2000);
+                return;
+            }
+            
+            const isFav = window.favoritesManager.toggle(voiceId);
+            showToast(isFav ? 'Added to favorites' : 'Removed from favorites', 'success', 2000);
+            
+            // Update button
+            updateSpeakerVoice(speaker);
+        }
+
+        function filterSpeakerVoices(speaker) {
+            const select = document.getElementById(`voice-${speaker}`);
+            const currentValue = select.value;
+            const favorites = window.favoritesManager.getAll();
+            
+            if (favorites.length === 0) {
+                showToast('No favorite voices yet. Click ⭐ to add favorites!', 'info', 3000);
+                return;
+            }
+            
+            // Filter to show only favorites
+            const favVoices = allVoices.filter(v => favorites.includes(v.id));
+            
+            select.innerHTML = '<option value="">Select voice...</option>' + 
+                favVoices.map(v => `<option value="${v.id}" ${v.id === currentValue ? 'selected' : ''}>${v.name} (${v.language_code})</option>`).join('');
+            
+            showToast(`Showing ${favVoices.length} favorite voices`, 'success', 2000);
         }
 
         function updatePauseValue() {

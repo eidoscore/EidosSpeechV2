@@ -142,8 +142,20 @@ async def register(
 
     # Check email uniqueness
     result = await db.execute(select(User).where(User.email == email))
-    if result.scalar_one_or_none():
-        raise ConflictError("An account with this email already exists")
+    existing_user = result.scalar_one_or_none()
+    
+    if existing_user:
+        # Email already registered - provide helpful message
+        if existing_user.is_verified:
+            raise ConflictError(
+                "An account with this email already exists. "
+                "Please login or use 'Forgot Password' if you can't access your account."
+            )
+        else:
+            raise ConflictError(
+                "An account with this email already exists but is not verified. "
+                "Please check your email for the verification link or use 'Resend Verification' to get a new one."
+            )
 
     # Create user
     verification_token = secrets.token_urlsafe(32)

@@ -32,6 +32,8 @@ class RequestContext:
     api_key: str | None
     api_key_id: int | None
     user_id: int | None
+    user_email: str | None
+    is_verified: bool
     ip_address: str
     char_limit: int
     req_per_day: int
@@ -139,12 +141,14 @@ async def resolve_request_context(
         if await is_blacklisted(db, ip=ip, email=user.email):
             raise ForbiddenError("Access denied")
 
-        logger.debug(f"AUTH_API_KEY user_id={user.id} ip={ip}")
+        logger.debug(f"AUTH_API_KEY user_id={user.id} verified={user.is_verified} ip={ip}")
         return RequestContext(
             tier="registered",
             api_key=key.key,
             api_key_id=key.id,
             user_id=user.id,
+            user_email=user.email,
+            is_verified=user.is_verified,
             ip_address=ip,
             char_limit=settings.free_api_char_limit,  # 1000 char for API
             req_per_day=settings.free_api_req_per_day,
@@ -161,7 +165,6 @@ async def resolve_request_context(
         except AuthenticationError:
             raise
 
-        user_id = payload.get("user_id")
         user = await db.get(User, user_id)
 
         if not user or not user.is_active:
@@ -176,12 +179,14 @@ async def resolve_request_context(
         )
         key = result.scalar_one_or_none()
 
-        logger.debug(f"AUTH_JWT user_id={user_id} ip={ip}")
+        logger.debug(f"AUTH_JWT user_id={user_id} verified={user.is_verified} ip={ip}")
         return RequestContext(
             tier="registered",
             api_key=key.key if key else None,
             api_key_id=key.id if key else None,
             user_id=user_id,
+            user_email=user.email,
+            is_verified=user.is_verified,
             ip_address=ip,
             char_limit=settings.free_webui_char_limit,  # 2000 char for Web UI
             req_per_day=settings.free_webui_req_per_day,
@@ -197,6 +202,8 @@ async def resolve_request_context(
             api_key=None,
             api_key_id=None,
             user_id=None,
+            user_email=None,
+            is_verified=False,
             ip_address=ip,
             char_limit=settings.anon_char_limit,  # 500 char
             req_per_day=settings.anon_req_per_day,

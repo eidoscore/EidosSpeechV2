@@ -21,7 +21,7 @@ from app.config import settings
 from app.core.auth import resolve_request_context, RequestContext
 from app.core.rate_limiter import get_rate_limiter, RateLimiter
 from app.core.cache import get_cache
-from app.core.exceptions import InternalError, ServiceUnavailableError
+from app.core.exceptions import InternalError, ServiceUnavailableError, ForbiddenError
 from app.db.database import get_db
 from app.db.models import ApiKey
 from app.models.schemas import TTSRequest, TTSSubtitleRequest, ScriptRequest
@@ -240,6 +240,13 @@ async def generate_script(
             "Please sign up to access this feature.",
             retry_after=0,
             detail={"feature": "multi-voice", "tier_required": "registered"}
+        )
+    
+    # ── 0.1. Block unverified users ───────────────────────────
+    if not ctx.is_verified:
+        raise ForbiddenError(
+            "Please verify your email address to use multi-voice features. "
+            "Check your inbox for the verification link or request a new one from your dashboard."
         )
     
     # ── 1. Parse script ────────────────────────────────────────

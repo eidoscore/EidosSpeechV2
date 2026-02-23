@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introducing eidosSpeech: Free Text-to-Speech API with 1,200+ AI Voices</title>
+    <meta name="description" content="Discover eidosSpeech, a completely free text-to-speech API with 1,200+ neural voices in 75+ languages. No credit card required. Perfect for developers, content creators, and businesses.">
+    <meta name="keywords" content="eidosSpeech, free TTS API, text to speech, AI voice generator, neural voices, Microsoft Edge TTS, free voice API, TTS Indonesia">
+    <meta name="author" content="eidosSpeech Team">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://eidosspeech.xyz/blog/introducing-eidosspeech">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://eidosspeech.xyz/blog/introducing-eidosspeech">
+    <meta property="og:title" content="Introducing eidosSpeech: Free Text-to-Speech API">
+    <meta property="og:description" content="A completely free TTS API with 1,200+ AI voices. No credit card required.">
+    <meta property="og:image" content="https://eidosspeech.xyz/static/blog/images/introducing-hero.jpg">
+    <meta property="og:site_name" content="eidosSpeech">
+    <meta property="article:published_time" content="2026-02-23T00:00:00Z">
+    <meta property="article:author" content="eidosSpeech Team">
+    <meta property="article:section" content="Technology">
+    <meta property="article:tag" content="Text-to-Speech">
+    <meta property="article:tag" content="AI Voice">
+    <meta property="article:tag" content="Free API">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Introducing eidosSpeech: Free TTS API">
+    <meta name="twitter:description" content="1,200+ AI voices, 75+ languages. Completely free forever.">
+    <meta name="twitter:image" content="https://eidosspeech.xyz/static/blog/images/introducing-hero.jpg">
+
+    <!-- Article Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Introducing eidosSpeech: Free Text-to-Speech API with 1,200+ AI Voices",
+      "description": "Discover eidosSpeech, a completely free text-to-speech API with 1,200+ neural voices in 75+ languages.",
+      "image": "https://eidosspeech.xyz/static/blog/images/introducing-hero.jpg",
+      "author": {
+        "@type": "Organization",
+        "name": "eidosSpeech Team"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "eidosSpeech",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://eidosspeech.xyz/icon.png"
+        }
+      },
+      "datePublished": "2026-02-23",
+      "dateModified": "2026-02-23"
+    }
+    </script>
+
+    <!-- Breadcrumb Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://eidosspeech.xyz/"
+      },{
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Blog",
+        "item": "https://eidosspeech.xyz/blog"
+      },{
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Introducing eidosSpeech",
+        "item": "https://eidosspeech.xyz/blog/introducing-eidosspeech"
+      }]
+    }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { color-scheme: dark; }
+        body { background: #050a06; color: #e5e7eb; font-family: 'Inter', sans-serif; }
+        .prose { max-width: 720px; }
+        .prose h2 { color: #fff; font-size: 1.875rem; font-weight: 700; margin-top: 3rem; margin-bottom: 1rem; }
+        .prose h3 { color: #fff; font-size: 1.5rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; }
+        .prose p { color: #d1d5db; line-height: 1.75; margin-bottom: 1.25rem; font-size: 1.0625rem; }
+        .prose ul { margin: 1.5rem 0; padding-left: 1.5rem; }
+        .prose li { color: #d1d5db; margin-bottom: 0.5rem; line-height: 1.75; }
+        .prose strong { color: #fff; font-weight: 600; }
+        .prose code { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875em; }
+        .prose a { color: #10b981; text-decoration: underline; }
+        .prose a:hover { color: #34d399; }
+        .prose img { border-radius: 1rem; margin: 2rem 0; }
+        .card { background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .08); }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-40 border-b border-white/[.06]" style="background: rgba(5,10,6,.9); backdrop-filter: blur(16px);">
+        <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center text-white font-bold text-xs shadow shadow-brand-500/30">e</div>
+                <span class="font-bold text-white">eidosSpeech</span>
+            </a>
+            <div class="flex items-center gap-4">
+                <a href="/blog" class="text-sm text-gray-400 hover:text-white transition-colors">Blog</a>
+                <a href="/app" class="text-sm font-medium bg-brand-500 hover:bg-brand-400 text-white px-3 py-1.5 rounded-lg transition-colors">Try Free</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Article -->
+    <article class="max-w-4xl mx-auto px-4 py-12">
+        <!-- Breadcrumb -->
+        <nav class="text-sm text-gray-500 mb-8">
+            <a href="/" class="hover:text-brand-400">Home</a>
+            <span class="mx-2">/</span>
+            <a href="/blog" class="hover:text-brand-400">Blog</a>
+            <span class="mx-2">/</span>
+            <span class="text-gray-400">Introducing eidosSpeech</span>
+        </nav>
+
+        <!-- Header -->
+        <header class="mb-12">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-xs px-3 py-1 rounded-full bg-brand-500/20 text-brand-400 font-semibold">Product Launch</span>
+                <time class="text-sm text-gray-500">February 23, 2026</time>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">Introducing eidosSpeech: Free Text-to-Speech API with 1,200+ AI Voices</h1>
+            <p class="text-xl text-gray-400 leading-relaxed">A completely free text-to-speech platform that makes AI voice generation accessible to everyone. No credit card required, no hidden fees, just pure innovation.</p>
+        </header>
+
+        <!-- Hero Image -->
+        <!-- TODO: Download from Pexels - search "AI voice technology" or "microphone studio" -->
+        <img src="/static/blog/images/introducing-hero.jpg" alt="eidosSpeech text-to-speech platform interface showing voice selection" class="w-full rounded-2xl mb-12" loading="eager">
+
+        <!-- Content -->
+        <div class="prose">
+            <h2>Why We Built eidosSpeech</h2>
+            <p>In early 2026, we noticed a problem: most text-to-speech APIs were either expensive, limited, or required complex setup. Content creators, developers, and businesses needed a simple, free solution that "just works."</p>
+            
+            <p>That's why we built <strong>eidosSpeech</strong> — a completely free text-to-speech API and online tool that gives you access to 1,200+ high-quality neural voices across 75+ languages. No credit card required. No hidden fees. Just pure, accessible AI voice technology.</p>
+
+            <h2>What Makes eidosSpeech Different?</h2>
+
+            <h3>1. Truly Free Forever</h3>
+            <p>Unlike other TTS services that offer "free trials" or require payment after a few uses, eidosSpeech is <strong>free forever</strong>. We're part of the <a href="https://eidosstack.com" target="_blank">eidosStack</a> ecosystem — a collection of free developer tools built for the community.</p>
+
+            <p>Our free tier includes:</p>
+            <ul>
+                <li><strong>30 requests per day</strong> for registered users</li>
+                <li><strong>1,000 characters per API call</strong></li>
+                <li><strong>2,000 characters via Web UI</strong></li>
+                <li>Full API access with your own API key</li>
+                <li>Dashboard with usage statistics</li>
+            </ul>
+
+            <h3>2. 1,200+ Neural Voices</h3>
+            <p>We leverage Microsoft Edge TTS technology to provide access to over 1,200 high-quality neural voices. These aren't robotic voices from the 2010s — these are natural-sounding AI voices that can pass for human speech in many contexts.</p>
+
+            <p>Our voice library includes:</p>
+            <ul>
+                <li><strong>75+ languages</strong> including English, Indonesian, Japanese, Spanish, French, German, Chinese, Korean, and more</li>
+                <li><strong>Male and female voices</strong> for every language</li>
+                <li><strong>Multilingual voices</strong> that can speak multiple languages</li>
+                <li><strong>Character voices</strong> for storytelling and content creation</li>
+            </ul>
+
+            <!-- Voice Examples Image -->
+            <!-- TODO: Download from Unsplash - search "language diversity" or "global communication" -->
+            <img src="/static/blog/images/voice-library.jpg" alt="Diverse collection of AI voices in multiple languages" class="w-full rounded-xl">
+
+            <h3>3. Simple REST API</h3>
+            <p>Integration takes less than 5 minutes. Our REST API is designed for developers who want to get things done quickly:</p>
+
+            <div class="card rounded-xl p-5 my-6">
+                <pre class="text-sm text-gray-300 overflow-x-auto"><code>curl -X POST https://eidosspeech.xyz/api/v1/tts \
+  -H "X-API-Key: your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Hello world!",
+    "voice": "en-US-JennyNeural"
+  }' \
+  --output speech.mp3</code></pre>
+            </div>
+
+            <p>That's it. No complex SDKs, no authentication flows, no OAuth. Just a simple POST request and you get MP3 audio back.</p>
+
+            <h3>4. Built for Content Creators</h3>
+            <p>Whether you're creating YouTube videos, TikTok content, podcasts, or e-learning materials, eidosSpeech has you covered:</p>
+
+            <ul>
+                <li><strong>YouTube voiceovers</strong> — Perfect for faceless channels and explainer videos</li>
+                <li><strong>Social media content</strong> — Generate audio for Instagram Reels and TikTok</li>
+                <li><strong>Podcasts</strong> — Create intro/outro segments or full episodes</li>
+                <li><strong>E-learning</strong> — Add narration to educational content</li>
+                <li><strong>Audiobooks</strong> — Convert written content to audio format</li>
+            </ul>
+
+            <h2>Key Features</h2>
+
+            <h3>Voice Customization</h3>
+            <p>Fine-tune your audio output with adjustable parameters:</p>
+            <ul>
+                <li><strong>Speed control</strong> — Adjust speaking rate from -50% to +100%</li>
+                <li><strong>Pitch adjustment</strong> — Modify voice pitch from -50Hz to +50Hz</li>
+                <li><strong>Volume control</strong> — Set audio volume from -50% to +50%</li>
+            </ul>
+
+            <h3>Smart Caching</h3>
+            <p>Identical requests return cached audio instantly. This means:</p>
+            <ul>
+                <li>⚡ Lightning-fast response times for repeated content</li>
+                <li>💰 Cached requests don't count against your rate limit</li>
+                <li>🌍 Reduced server load and environmental impact</li>
+            </ul>
+
+            <h3>Rate Limit Transparency</h3>
+            <p>Every API response includes rate limit headers so you always know your quota:</p>
+
+            <div class="card rounded-xl p-5 my-6">
+                <pre class="text-sm text-gray-300"><code>X-RateLimit-Remaining-Day: 29
+X-RateLimit-Limit-Day: 30
+X-RateLimit-Tier: registered</code></pre>
+            </div>
+
+            <h2>Who Is eidosSpeech For?</h2>
+
+            <h3>Developers</h3>
+            <p>Build voice-enabled applications without worrying about TTS costs. Perfect for:</p>
+            <ul>
+                <li>Chatbots and virtual assistants</li>
+                <li>Accessibility features for visually impaired users</li>
+                <li>Voice notifications and alerts</li>
+                <li>Interactive voice response (IVR) systems</li>
+            </ul>
+
+            <h3>Content Creators</h3>
+            <p>Generate professional voiceovers for your content:</p>
+            <ul>
+                <li>YouTube videos and tutorials</li>
+                <li>TikTok and Instagram Reels</li>
+                <li>Podcast intros and outros</li>
+                <li>Video game narration</li>
+            </ul>
+
+            <h3>Businesses</h3>
+            <p>Add voice capabilities to your products:</p>
+            <ul>
+                <li>E-learning platforms</li>
+                <li>Customer support automation</li>
+                <li>Marketing videos</li>
+                <li>Product demonstrations</li>
+            </ul>
+
+            <!-- Use Cases Image -->
+            <!-- TODO: Download from Pexels - search "content creator" or "podcast recording" -->
+            <img src="/static/blog/images/use-cases.jpg" alt="Content creator using text-to-speech for video production" class="w-full rounded-xl">
+
+            <h2>Getting Started in 3 Steps</h2>
+
+            <h3>Step 1: Try the Web UI</h3>
+            <p>Visit <a href="https://eidosspeech.xyz/app">eidosspeech.xyz/app</a> and start generating speech immediately. No registration required for basic use (5 requests/day).</p>
+
+            <h3>Step 2: Register for API Access</h3>
+            <p>Create a free account to unlock:</p>
+            <ul>
+                <li>30 requests per day (vs 5 for anonymous)</li>
+                <li>API key for external integrations</li>
+                <li>Dashboard with usage statistics</li>
+                <li>Higher character limits</li>
+            </ul>
+
+            <h3>Step 3: Integrate the API</h3>
+            <p>Copy your API key from the dashboard and start making requests. Check out our <a href="/blog/how-to-use-eidosspeech-api">complete API tutorial</a> for code examples in Python, JavaScript, and more.</p>
+
+            <h2>What's Next?</h2>
+            <p>We're just getting started. Here's what's coming soon:</p>
+            <ul>
+                <li><strong>Voice cloning</strong> — Upload a voice sample and clone it</li>
+                <li><strong>SSML support</strong> — Advanced speech control with markup</li>
+                <li><strong>Batch processing</strong> — Convert multiple texts in one request</li>
+                <li><strong>Webhook notifications</strong> — Get notified when audio is ready</li>
+                <li><strong>Custom voice training</strong> — Train voices on your own data</li>
+            </ul>
+
+            <h2>Join the Community</h2>
+            <p>eidosSpeech is more than just a tool — it's a community of developers, creators, and innovators building the future of voice technology.</p>
+
+            <ul>
+                <li>⭐ Star us on <a href="https://github.com/eidoscore" target="_blank">GitHub</a></li>
+                <li>💬 Join discussions on our <a href="https://discord.gg/eidosstack" target="_blank">Discord</a></li>
+                <li>🐦 Follow us on <a href="https://twitter.com/eidosspeech" target="_blank">Twitter</a></li>
+                <li>📧 Subscribe to our newsletter for updates</li>
+            </ul>
+
+            <h2>Conclusion</h2>
+            <p>Text-to-speech technology should be accessible to everyone, not just those with big budgets. That's why we built eidosSpeech — a completely free, high-quality TTS platform that empowers creators, developers, and businesses to build amazing voice-enabled experiences.</p>
+
+            <p><strong>Ready to get started?</strong> <a href="https://eidosspeech.xyz/app">Try eidosSpeech now</a> — no credit card required.</p>
+
+            <!-- CTA Card -->
+            <div class="card rounded-2xl p-8 my-12 text-center bg-brand-500/5 border-brand-500/20">
+                <h3 class="text-2xl font-bold text-white mb-4">Start Using eidosSpeech Today</h3>
+                <p class="text-gray-400 mb-6">1,200+ voices. 75+ languages. Completely free forever.</p>
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <a href="/app" class="px-6 py-3 bg-brand-500 hover:bg-brand-400 text-white font-semibold rounded-xl transition-colors">Try Web UI</a>
+                    <a href="/api-docs" class="px-6 py-3 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl transition-colors border border-white/10">View API Docs</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Author Bio -->
+        <div class="card rounded-2xl p-6 mt-12">
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 text-2xl font-bold">e</div>
+                <div>
+                    <div class="font-semibold text-white">eidosSpeech Team</div>
+                    <div class="text-sm text-gray-400">Building free tools for developers and creators</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Articles -->
+        <div class="mt-16">
+            <h3 class="text-2xl font-bold text-white mb-6">Related Articles</h3>
+            <div class="grid md:grid-cols-2 gap-6">
+                <a href="/blog/v2-1-features" class="card rounded-xl p-6 hover:border-brand-500/20 transition-colors block">
+                    <div class="text-xs text-brand-400 font-semibold mb-2">NEW FEATURES</div>
+                    <h4 class="text-lg font-semibold text-white mb-2">What's New in eidosSpeech v2.1</h4>
+                    <p class="text-sm text-gray-400">Multi-voice scripts, subtitle generation, and voice emotions</p>
+                </a>
+                <a href="/blog/how-to-use-eidosspeech-api" class="card rounded-xl p-6 hover:border-brand-500/20 transition-colors block">
+                    <div class="text-xs text-brand-400 font-semibold mb-2">TUTORIAL</div>
+                    <h4 class="text-lg font-semibold text-white mb-2">How to Use eidosSpeech API</h4>
+                    <p class="text-sm text-gray-400">Complete guide with code examples in Python, JavaScript, and cURL</p>
+                </a>
+            </div>
+        </div>
+    </article>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/[.06] mt-24 py-12">
+        <div class="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500">
+            <p>&copy; 2026 eidosSpeech. Part of <a href="https://eidosstack.com" class="text-brand-400 hover:underline">eidosStack</a>.</p>
+        </div>
+    </footer>
+</body>
+</html>

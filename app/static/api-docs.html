@@ -158,6 +158,16 @@
                         <li><a href="#ep-tts"
                                 class="block px-3 py-1.5 text-sm text-gray-400 hover:text-white rounded-lg transition-colors hover:bg-white/5">POST
                                 /tts</a></li>
+                        <li><a href="#ep-script"
+                                class="block px-3 py-1.5 text-sm text-gray-400 hover:text-white rounded-lg transition-colors hover:bg-white/5 flex items-center gap-2">
+                                POST /tts/script
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-400 font-semibold">NEW</span>
+                            </a></li>
+                        <li><a href="#ep-subtitle"
+                                class="block px-3 py-1.5 text-sm text-gray-400 hover:text-white rounded-lg transition-colors hover:bg-white/5 flex items-center gap-2">
+                                POST /tts/subtitle
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-400 font-semibold">NEW</span>
+                            </a></li>
                         <li><a href="#ep-voices"
                                 class="block px-3 py-1.5 text-sm text-gray-400 hover:text-white rounded-lg transition-colors hover:bg-white/5">GET
                                 /voices</a></li>
@@ -331,6 +341,93 @@ X-Cache-Hit: false</pre>
 <span class="text-amber-400">Retry-After: 86400</span></pre>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <!-- Multi-Voice Script Endpoint (NEW v2.1) -->
+            <section id="ep-script" class="mb-16">
+                <div class="flex items-center gap-3 mb-5">
+                    <span class="method-post text-xs font-bold px-2.5 py-1 rounded-lg font-mono">POST</span>
+                    <h2 class="text-xl font-bold text-white font-mono">/tts/script</h2>
+                    <span class="text-[10px] px-2 py-1 rounded bg-brand-500/20 text-brand-400 font-semibold">NEW v2.1</span>
+                </div>
+                <p class="text-gray-400 text-sm mb-6">Generate multi-voice dialog audio from script. Registered users only. Returns merged MP3 audio.</p>
+
+                <div class="card rounded-2xl p-5 mb-4">
+                    <h3 class="text-sm font-semibold text-white mb-3">Request Body</h3>
+                    <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto">{
+  <span style="color:#93c5fd">"script"</span>: <span style="color:#34d399">"[John]: Hello!\\n[Mary]: Hi there!"</span>,  <span class="text-gray-600">// required, format: [Speaker]: Text</span>
+  <span style="color:#93c5fd">"voice_map"</span>: {                                      <span class="text-gray-600">// required, speaker → voice mapping</span>
+    <span style="color:#93c5fd">"John"</span>: <span style="color:#34d399">"en-US-GuyNeural"</span>,
+    <span style="color:#93c5fd">"Mary"</span>: <span style="color:#34d399">"en-US-JennyNeural"</span>
+  },
+  <span style="color:#93c5fd">"pause_ms"</span>: <span style="color:#34d399">500</span>                                   <span class="text-gray-600">// optional, pause between lines (0-2000ms)</span>
+}</pre>
+                </div>
+
+                <div class="card rounded-2xl p-5 mb-4">
+                    <h3 class="text-sm font-semibold text-white mb-3">Script Format</h3>
+                    <p class="text-gray-400 text-xs mb-3">Each line must follow the format: <code class="text-emerald-400">[SpeakerName]: Dialog text</code></p>
+                    <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto">[John]: Hello, how are you today?
+[Mary]: I'm doing great, thanks for asking!
+[John]: That's wonderful to hear.
+[Mary]: How about you?</pre>
+                </div>
+
+                <div class="card rounded-2xl p-5">
+                    <h3 class="text-sm font-semibold text-white mb-3">Response</h3>
+                    <div class="grid sm:grid-cols-2 gap-3">
+                        <div>
+                            <div class="text-xs text-emerald-400 mb-1.5">✓ 200 OK</div>
+                            <pre class="code-block rounded-lg p-3 text-xs text-gray-400">Content-Type: audio/mpeg
+(Merged MP3 audio bytes)</pre>
+                        </div>
+                        <div>
+                            <div class="text-xs text-red-400 mb-1.5">✕ 403 Forbidden</div>
+                            <pre class="code-block rounded-lg p-3 text-xs text-gray-400">{
+  "error": "ForbiddenError",
+  "message": "Multi-voice script requires registration"
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card rounded-2xl p-5 mt-4 bg-amber-500/5 border-amber-500/20">
+                    <div class="flex gap-3">
+                        <svg class="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <h4 class="text-sm font-semibold text-amber-400 mb-1">Rate Limits</h4>
+                            <p class="text-xs text-gray-400">Multi-voice script is CPU-intensive. Registered users: 10 requests/day, 2 requests/minute.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Subtitle Endpoint (NEW v2.1) -->
+            <section id="ep-subtitle" class="mb-16">
+                <div class="flex items-center gap-3 mb-5">
+                    <span class="method-post text-xs font-bold px-2.5 py-1 rounded-lg font-mono">POST</span>
+                    <h2 class="text-xl font-bold text-white font-mono">/tts/subtitle</h2>
+                    <span class="text-[10px] px-2 py-1 rounded bg-brand-500/20 text-brand-400 font-semibold">NEW v2.1</span>
+                </div>
+                <p class="text-gray-400 text-sm mb-6">Generate speech with subtitle file (.srt). Returns JSON with audio URL and SRT content.</p>
+
+                <div class="card rounded-2xl p-5 mb-4">
+                    <h3 class="text-sm font-semibold text-white mb-3">Request Body</h3>
+                    <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto">{
+  <span style="color:#93c5fd">"text"</span>:  <span style="color:#34d399">"Your text here"</span>,
+  <span style="color:#93c5fd">"voice"</span>: <span style="color:#34d399">"id-ID-GadisNeural"</span>  <span class="text-gray-600">// optional</span>
+}</pre>
+                </div>
+
+                <div class="card rounded-2xl p-5">
+                    <h3 class="text-sm font-semibold text-white mb-3">Response</h3>
+                    <pre class="code-block rounded-xl p-4 text-xs text-gray-300 overflow-x-auto">{
+  <span style="color:#93c5fd">"audio_url"</span>: <span style="color:#34d399">"/cache/abc123.mp3"</span>,
+  <span style="color:#93c5fd">"subtitle"</span>: <span style="color:#34d399">"1\\n00:00:00,000 --> 00:00:02,500\\nYour text here\\n"</span>
+}</pre>
                 </div>
             </section>
 

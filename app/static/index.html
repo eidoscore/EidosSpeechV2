@@ -881,9 +881,9 @@
                     body: JSON.stringify({
                         text: sampleText,
                         voice: voiceId,
-                        rate: 0,
-                        pitch: 0,
-                        volume: 0
+                        rate: '+0%',
+                        pitch: '+0Hz',
+                        volume: '+0%'
                     })
                 });
 
@@ -918,7 +918,7 @@
                 }
             } catch (err) {
                 console.error('Preview error:', err);
-                showToast(err.message || 'Failed to preview voice', 'error', 2000);
+                showToast(getErrorMessage(err), 'error', 2000);
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }
@@ -976,9 +976,9 @@
                     body: JSON.stringify({
                         text: sampleText,
                         voice: voiceId,
-                        rate: 0,
-                        pitch: 0,
-                        volume: 0
+                        rate: '+0%',
+                        pitch: '+0Hz',
+                        volume: '+0%'
                     })
                 });
 
@@ -1013,7 +1013,7 @@
                 }
             } catch (err) {
                 console.error('Preview error:', err);
-                showToast(err.message || 'Failed to preview voice', 'error', 2000);
+                showToast(getErrorMessage(err), 'error', 2000);
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }

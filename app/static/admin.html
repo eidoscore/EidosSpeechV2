@@ -340,6 +340,31 @@
                         </div>
                     </div>
 
+                    <!-- Request Type Breakdown -->
+                    <div class="card rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                            <span>🎯</span> Request Type Breakdown
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-white/[.02] rounded-lg p-3 border border-white/[.05]">
+                                <div class="text-xs text-gray-500 mb-1">WebUI TTS</div>
+                                <div id="usage-webui-tts" class="text-xl font-bold text-blue-400">—</div>
+                            </div>
+                            <div class="bg-white/[.02] rounded-lg p-3 border border-white/[.05]">
+                                <div class="text-xs text-gray-500 mb-1">API TTS</div>
+                                <div id="usage-api-tts" class="text-xl font-bold text-purple-400">—</div>
+                            </div>
+                            <div class="bg-white/[.02] rounded-lg p-3 border border-white/[.05]">
+                                <div class="text-xs text-gray-500 mb-1">WebUI Multi-Voice</div>
+                                <div id="usage-webui-multi" class="text-xl font-bold text-cyan-400">—</div>
+                            </div>
+                            <div class="bg-white/[.02] rounded-lg p-3 border border-white/[.05]">
+                                <div class="text-xs text-gray-500 mb-1">API Multi-Voice</div>
+                                <div id="usage-api-multi" class="text-xl font-bold text-pink-400">—</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="flex gap-2 items-center">
                         <label class="text-xs text-gray-500">Last</label>
                         <select id="usage-days" onchange="loadUsage()"
@@ -379,11 +404,15 @@
                                     <th class="text-left text-xs text-gray-500 px-4 py-3">Requests</th>
                                     <th class="text-left text-xs text-gray-500 px-4 py-3">Characters</th>
                                     <th class="text-left text-xs text-gray-500 px-4 py-3">Unique IPs</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">WebUI TTS</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">API TTS</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">WebUI Multi</th>
+                                    <th class="text-left text-xs text-gray-500 px-4 py-3">API Multi</th>
                                 </tr>
                             </thead>
                             <tbody id="usage-tbody" class="text-gray-400">
                                 <tr>
-                                    <td colspan="4" class="py-8 text-center text-gray-600 text-sm">Loading…</td>
+                                    <td colspan="8" class="py-8 text-center text-gray-600 text-sm">Loading…</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -811,9 +840,26 @@
                 const totalChars = rows.reduce((sum, r) => sum + r.chars, 0);
                 const avgReq = rows.length > 0 ? Math.round(totalReq / rows.length) : 0;
                 
+                // Calculate breakdown totals
+                const totalWebUITTS = rows.reduce((sum, r) => sum + (r.webui_tts || 0), 0);
+                const totalAPITTS = rows.reduce((sum, r) => sum + (r.api_tts || 0), 0);
+                const totalWebUIMulti = rows.reduce((sum, r) => sum + (r.webui_multivoice || 0), 0);
+                const totalAPIMulti = rows.reduce((sum, r) => sum + (r.api_multivoice || 0), 0);
+                
                 document.getElementById('usage-total-req').textContent = totalReq.toLocaleString();
                 document.getElementById('usage-total-chars').textContent = totalChars.toLocaleString();
                 document.getElementById('usage-avg-req').textContent = avgReq.toLocaleString();
+                
+                // Update breakdown summary if elements exist
+                const webuiTTSEl = document.getElementById('usage-webui-tts');
+                const apiTTSEl = document.getElementById('usage-api-tts');
+                const webuiMultiEl = document.getElementById('usage-webui-multi');
+                const apiMultiEl = document.getElementById('usage-api-multi');
+                
+                if (webuiTTSEl) webuiTTSEl.textContent = totalWebUITTS.toLocaleString();
+                if (apiTTSEl) apiTTSEl.textContent = totalAPITTS.toLocaleString();
+                if (webuiMultiEl) webuiMultiEl.textContent = totalWebUIMulti.toLocaleString();
+                if (apiMultiEl) apiMultiEl.textContent = totalAPIMulti.toLocaleString();
                 
                 // Update charts
                 updateUsageCharts(rows);
@@ -822,7 +868,7 @@
                 if (rows.length === 0 || totalReq === 0) {
                     document.getElementById('usage-tbody').innerHTML = `
                         <tr>
-                            <td colspan="4" class="py-12 text-center">
+                            <td colspan="8" class="py-12 text-center">
                                 <div class="text-gray-600 mb-2">📊</div>
                                 <div class="text-sm text-gray-500 mb-1">No usage data yet</div>
                                 <div class="text-xs text-gray-600">Usage statistics will appear here once users start making requests</div>
@@ -836,6 +882,10 @@
                             <td class="px-4 py-3 font-mono text-xs text-gray-300">${r.requests.toLocaleString()}</td>
                             <td class="px-4 py-3 font-mono text-xs text-gray-400">${r.chars.toLocaleString()}</td>
                             <td class="px-4 py-3 font-mono text-xs text-gray-500">${r.unique_ips}</td>
+                            <td class="px-4 py-3 font-mono text-xs text-blue-400">${(r.webui_tts || 0).toLocaleString()}</td>
+                            <td class="px-4 py-3 font-mono text-xs text-purple-400">${(r.api_tts || 0).toLocaleString()}</td>
+                            <td class="px-4 py-3 font-mono text-xs text-cyan-400">${(r.webui_multivoice || 0).toLocaleString()}</td>
+                            <td class="px-4 py-3 font-mono text-xs text-pink-400">${(r.api_multivoice || 0).toLocaleString()}</td>
                         </tr>
                     `).join('');
                 }
@@ -843,7 +893,7 @@
                 showToast('Failed to load usage data.', 'error');
                 document.getElementById('usage-tbody').innerHTML = `
                     <tr>
-                        <td colspan="4" class="py-8 text-center text-red-400 text-sm">Failed to load usage data</td>
+                        <td colspan="8" class="py-8 text-center text-red-400 text-sm">Failed to load usage data</td>
                     </tr>
                 `;
             }

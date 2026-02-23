@@ -860,13 +860,29 @@
                 const langCode = voice?.language_code?.split('-')[0] || 'en';
                 const sampleText = sampleTexts[langCode] || sampleTexts['en'];
 
-                const resp = await ApiClient.post('/tts', {
-                    text: sampleText,
-                    voice: voiceId,
-                    rate: 0,
-                    pitch: 0,
-                    volume: 0
+                // Use fetch directly to handle both authenticated and anonymous users
+                const headers = { 'Content-Type': 'application/json' };
+                const token = AuthStore.getToken();
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const response = await fetch('/api/v1/tts', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({
+                        text: sampleText,
+                        voice: voiceId,
+                        rate: 0,
+                        pitch: 0,
+                        volume: 0
+                    })
                 });
+
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ detail: 'Failed to generate preview' }));
+                    throw new Error(error.detail || 'Failed to generate preview');
+                }
+
+                const resp = await response.json();
 
                 if (resp.audio_url) {
                     previewAudio = new Audio(resp.audio_url);
@@ -892,7 +908,7 @@
                 }
             } catch (err) {
                 console.error('Preview error:', err);
-                showToast('Failed to preview voice', 'error', 2000);
+                showToast(err.message || 'Failed to preview voice', 'error', 2000);
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }
@@ -939,13 +955,29 @@
                 const langCode = voice?.language_code?.split('-')[0] || 'en';
                 const sampleText = sampleTexts[langCode] || sampleTexts['en'];
 
-                const resp = await ApiClient.post('/tts', {
-                    text: sampleText,
-                    voice: voiceId,
-                    rate: 0,
-                    pitch: 0,
-                    volume: 0
+                // Use fetch directly to handle both authenticated and anonymous users
+                const headers = { 'Content-Type': 'application/json' };
+                const token = AuthStore.getToken();
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const response = await fetch('/api/v1/tts', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({
+                        text: sampleText,
+                        voice: voiceId,
+                        rate: 0,
+                        pitch: 0,
+                        volume: 0
+                    })
                 });
+
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ detail: 'Failed to generate preview' }));
+                    throw new Error(error.detail || 'Failed to generate preview');
+                }
+
+                const resp = await response.json();
 
                 if (resp.audio_url) {
                     previewAudio = new Audio(resp.audio_url);
@@ -971,7 +1003,7 @@
                 }
             } catch (err) {
                 console.error('Preview error:', err);
-                showToast('Failed to preview voice', 'error', 2000);
+                showToast(err.message || 'Failed to preview voice', 'error', 2000);
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }

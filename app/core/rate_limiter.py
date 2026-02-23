@@ -64,6 +64,7 @@ class RateLimiter:
         ctx: RequestContext,
         db: AsyncSession,
         text_len: int,
+        request_type: str = "webui_tts",  # webui_tts, api_tts, webui_multivoice, api_multivoice
     ) -> "DailyUsageRow":
         """
         Check all rate limits and consume quota.
@@ -128,6 +129,17 @@ class RateLimiter:
         window.append(now)
         usage.request_count += 1
         usage.chars_used += text_len
+        
+        # Track request type for detailed analytics
+        if request_type == "webui_tts":
+            usage.webui_tts_count += 1
+        elif request_type == "api_tts":
+            usage.api_tts_count += 1
+        elif request_type == "webui_multivoice":
+            usage.webui_multivoice_count += 1
+        elif request_type == "api_multivoice":
+            usage.api_multivoice_count += 1
+        
         await db.commit()
 
         return usage

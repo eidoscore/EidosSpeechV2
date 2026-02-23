@@ -182,7 +182,7 @@ async def admin_usage(
     db: AsyncSession = Depends(get_db),
     days: int = Query(30, ge=1, le=90),
 ):
-    """Daily usage aggregates for last N days"""
+    """Daily usage aggregates for last N days with request type breakdown"""
     cutoff = date.today() - timedelta(days=days)
 
     result = await db.execute(
@@ -191,6 +191,10 @@ async def admin_usage(
             func.sum(DailyUsage.request_count).label("requests"),
             func.sum(DailyUsage.chars_used).label("chars"),
             func.count(func.distinct(DailyUsage.ip_address)).label("unique_ips"),
+            func.sum(DailyUsage.webui_tts_count).label("webui_tts"),
+            func.sum(DailyUsage.api_tts_count).label("api_tts"),
+            func.sum(DailyUsage.webui_multivoice_count).label("webui_multivoice"),
+            func.sum(DailyUsage.api_multivoice_count).label("api_multivoice"),
         )
         .where(DailyUsage.date >= cutoff)
         .group_by(DailyUsage.date)
@@ -205,6 +209,10 @@ async def admin_usage(
                 "requests": r.requests or 0,
                 "chars": r.chars or 0,
                 "unique_ips": r.unique_ips or 0,
+                "webui_tts": r.webui_tts or 0,
+                "api_tts": r.api_tts or 0,
+                "webui_multivoice": r.webui_multivoice or 0,
+                "api_multivoice": r.api_multivoice or 0,
             }
             for r in rows
         ]

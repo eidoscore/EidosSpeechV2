@@ -77,6 +77,12 @@ class DailyUsage(Base):
     request_count = Column(Integer, default=0, nullable=False)
     chars_used    = Column(Integer, default=0, nullable=False)
     voice         = Column(String(100))                                               # track popular voices
+    
+    # Request type breakdown for detailed analytics
+    webui_tts_count = Column(Integer, default=0, nullable=False)           # Web UI regular TTS
+    api_tts_count = Column(Integer, default=0, nullable=False)             # API regular TTS
+    webui_multivoice_count = Column(Integer, default=0, nullable=False)    # Web UI multi-voice
+    api_multivoice_count = Column(Integer, default=0, nullable=False)      # API multi-voice
 
     __table_args__ = (
         Index("idx_daily_usage_key_date", "api_key_id", "date"),

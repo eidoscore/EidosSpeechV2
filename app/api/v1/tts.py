@@ -71,7 +71,8 @@ async def generate_tts(
     text = tts_request.text.strip()
 
     # ── 1. Rate limit check (char, per-min, per-day) ──────────
-    usage = await rate_limiter.check_and_consume(ctx, db, len(text))
+    request_type = "api_tts" if not ctx.is_web_ui else "webui_tts"
+    usage = await rate_limiter.check_and_consume(ctx, db, len(text), request_type=request_type)
 
     # ── 2. Cache check ────────────────────────────────────────
     cache = get_cache()
@@ -157,7 +158,8 @@ async def generate_tts_with_subtitle(
     text = tts_request.text.strip()
 
     # ── 1. Rate limit check ───────────────────────────────────
-    usage = await rate_limiter.check_and_consume(ctx, db, len(text))
+    request_type = "api_tts" if not ctx.is_web_ui else "webui_tts"
+    usage = await rate_limiter.check_and_consume(ctx, db, len(text), request_type=request_type)
 
     # ── 2. Cache check (audio only, SRT always regenerated) ──
     cache = get_cache()
@@ -259,7 +261,8 @@ async def generate_script(
     total_chars = sum(len(line.text) for line in lines)
     
     # ── 3. Rate limit check ───────────────────────────────────
-    usage = await rate_limiter.check_and_consume(ctx, db, total_chars)
+    request_type = "api_multivoice" if not ctx.is_web_ui else "webui_multivoice"
+    usage = await rate_limiter.check_and_consume(ctx, db, total_chars, request_type=request_type)
     
     # ── 4. Acquire concurrent semaphore (per-user) ───────────
     async with rate_limiter.acquire_concurrent(ctx):

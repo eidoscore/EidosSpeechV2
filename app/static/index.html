@@ -426,90 +426,73 @@
 
             <!-- Multi-Voice Script Mode -->
             <div id="mode-script" class="space-y-5 hidden">
-                <div class="grid lg:grid-cols-[1fr_300px] gap-5">
-                    <!-- Left: Script Content -->
-                    <div class="space-y-5">
-                        <!-- Script Input -->
-                        <div class="card rounded-2xl p-5">
-                            <div class="flex items-center justify-between mb-3">
-                                <label class="text-sm font-medium text-gray-300">Multi-Voice Script</label>
-                                <button onclick="showScriptHelp()" class="text-xs text-gray-500 hover:text-brand-400 transition-colors">
-                                    How to use?
-                                </button>
-                            </div>
-                            <textarea id="script-text" rows="12" placeholder="[Speaker1]: Hello, how are you?
+                <!-- Script Input -->
+                <div class="card rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="text-sm font-medium text-gray-300">Multi-Voice Script</label>
+                        <button onclick="showScriptHelp()" class="text-xs text-gray-500 hover:text-brand-400 transition-colors">
+                            How to use?
+                        </button>
+                    </div>
+                    <textarea id="script-text" rows="12" placeholder="[Speaker1]: Hello, how are you?
 [Speaker2]: I'm doing great, thanks for asking!
 [Speaker1]: That's wonderful to hear."
-                                class="w-full bg-transparent text-gray-200 placeholder-gray-600 text-sm leading-relaxed focus:outline-none font-mono"
-                                oninput="parseScript()"></textarea>
-                            <div class="mt-3 text-xs text-gray-500">
-                                Format: <code class="text-brand-400">[SpeakerName]: Dialog text</code>
-                            </div>
-                        </div>
+                        class="w-full bg-transparent text-gray-200 placeholder-gray-600 text-sm leading-relaxed focus:outline-none font-mono"
+                        oninput="parseScript()"></textarea>
+                    <div class="mt-3 text-xs text-gray-500">
+                        Format: <code class="text-brand-400">[SpeakerName]: Dialog text</code>
+                    </div>
+                </div>
 
-                        <!-- Voice Mapping -->
-                        <div class="card rounded-2xl p-5">
-                            <label class="text-sm font-medium text-gray-300 mb-3 block">Voice Mapping</label>
-                            <div id="voice-mapping" class="space-y-3">
-                                <div class="text-sm text-gray-500 text-center py-4">
-                                    Type your script above to assign voices
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Script Settings -->
-                        <div class="card rounded-2xl p-5 space-y-4">
-                            <div>
-                                <label class="text-sm font-medium text-gray-300 mb-2 block">Pause Between Lines</label>
-                                <div class="flex items-center gap-3">
-                                    <input type="range" id="pause-ms" min="0" max="2000" step="100" value="500" 
-                                        oninput="updatePauseValue()" class="flex-1">
-                                    <span id="pause-value" class="text-sm text-gray-400 w-16 text-right">500ms</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Generate Button -->
-                        <button id="generate-script-btn" onclick="generateScript()"
-                            class="w-full bg-brand-500 hover:bg-brand-400 text-white font-medium py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span id="script-btn-text">Generate Multi-Voice Audio</span>
-                        </button>
-
-                        <!-- Script Audio Player -->
-                        <div id="script-audio-section" class="card rounded-2xl p-5 hidden fade-in">
-                            <div class="flex items-center justify-between mb-3">
-                                <span class="text-sm font-medium text-gray-300">Multi-Voice Output</span>
-                            </div>
-                            <canvas id="script-waveform-canvas" class="w-full h-20 rounded-xl mb-3 cursor-pointer" style="background: #0d1a0f;"></canvas>
-                            <audio id="script-audio-player" controls class="w-full audio-player hidden"
-                                style="height:44px; accent-color:#10b981;"></audio>
-                            <div class="flex gap-2 mt-3">
-                                <a id="script-download-btn" href="#" download="multi_voice_script.mp3"
-                                    class="flex-1 flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-2.5 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                    </svg>
-                                    Download MP3
-                                </a>
-                            </div>
+                <!-- Voice Mapping -->
+                <div class="card rounded-2xl p-5">
+                    <label class="text-sm font-medium text-gray-300 mb-3 block">Voice Mapping</label>
+                    <div id="voice-mapping" class="space-y-3">
+                        <div class="text-sm text-gray-500 text-center py-4">
+                            Type your script above to assign voices
                         </div>
                     </div>
+                </div>
 
-                    <!-- Right: Ads Sidebar for Multi-Voice -->
-                    <div class="hidden lg:block space-y-5">
-                        <!-- AdSense Slot Multi-Voice -->
-                        <div class="card rounded-2xl p-4 min-h-[250px] flex items-center justify-center border-dashed sticky top-5"
-                            style="border-color:rgba(255,255,255,.05);">
-                            <div class="text-center text-gray-700 text-xs">
-                                <div class="text-2xl mb-1">📢</div>
-                                Advertisement
-                            </div>
+                <!-- Script Settings -->
+                <div class="card rounded-2xl p-5 space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-300 mb-2 block">Pause Between Lines</label>
+                        <div class="flex items-center gap-3">
+                            <input type="range" id="pause-ms" min="0" max="2000" step="100" value="500" 
+                                oninput="updatePauseValue()" class="flex-1">
+                            <span id="pause-value" class="text-sm text-gray-400 w-16 text-right">500ms</span>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <button id="generate-script-btn" onclick="generateScript()"
+                    class="w-full bg-brand-500 hover:bg-brand-400 text-white font-medium py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="script-btn-text">Generate Multi-Voice Audio</span>
+                </button>
+
+                <!-- Script Audio Player -->
+                <div id="script-audio-section" class="card rounded-2xl p-5 hidden fade-in">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-medium text-gray-300">Multi-Voice Output</span>
+                    </div>
+                    <canvas id="script-waveform-canvas" class="w-full h-20 rounded-xl mb-3 cursor-pointer" style="background: #0d1a0f;"></canvas>
+                    <audio id="script-audio-player" controls class="w-full audio-player hidden"
+                        style="height:44px; accent-color:#10b981;"></audio>
+                    <div class="flex gap-2 mt-3">
+                        <a id="script-download-btn" href="#" download="multi_voice_script.mp3"
+                            class="flex-1 flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-2.5 transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download MP3
+                        </a>
                     </div>
                 </div>
             </div>

@@ -892,30 +892,30 @@
                     throw new Error(error.detail || 'Failed to generate preview');
                 }
 
-                const resp = await response.json();
+                // Response is an audio file, create blob URL
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
 
-                if (resp.audio_url) {
-                    previewAudio = new Audio(resp.audio_url);
-                    
-                    btn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
-                    
-                    previewAudio.onended = () => {
-                        btn.innerHTML = originalHTML;
-                        btn.disabled = false;
-                        previewAudio = null;
-                    };
-                    
-                    previewAudio.onerror = () => {
-                        btn.innerHTML = originalHTML;
-                        btn.disabled = false;
-                        showToast('Failed to play preview', 'error', 2000);
-                        previewAudio = null;
-                    };
-                    
-                    await previewAudio.play();
-                } else {
-                    throw new Error('No audio URL returned');
-                }
+                previewAudio = new Audio(audioUrl);
+                
+                btn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
+                
+                previewAudio.onended = () => {
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                    URL.revokeObjectURL(audioUrl);
+                    previewAudio = null;
+                };
+                
+                previewAudio.onerror = () => {
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                    URL.revokeObjectURL(audioUrl);
+                    showToast('Failed to play preview', 'error', 2000);
+                    previewAudio = null;
+                };
+                
+                await previewAudio.play();
             } catch (err) {
                 console.error('Preview error:', err);
                 showToast(getErrorMessage(err), 'error', 2000);
@@ -987,30 +987,30 @@
                     throw new Error(error.detail || 'Failed to generate preview');
                 }
 
-                const resp = await response.json();
+                // Response is an audio file, create blob URL
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
 
-                if (resp.audio_url) {
-                    previewAudio = new Audio(resp.audio_url);
-                    
-                    btn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
-                    
-                    previewAudio.onended = () => {
-                        btn.innerHTML = originalHTML;
-                        btn.disabled = false;
-                        previewAudio = null;
-                    };
-                    
-                    previewAudio.onerror = () => {
-                        btn.innerHTML = originalHTML;
-                        btn.disabled = false;
-                        showToast('Failed to play preview', 'error', 2000);
-                        previewAudio = null;
-                    };
-                    
-                    await previewAudio.play();
-                } else {
-                    throw new Error('No audio URL returned');
-                }
+                previewAudio = new Audio(audioUrl);
+                
+                btn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
+                
+                previewAudio.onended = () => {
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                    URL.revokeObjectURL(audioUrl);
+                    previewAudio = null;
+                };
+                
+                previewAudio.onerror = () => {
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                    URL.revokeObjectURL(audioUrl);
+                    showToast('Failed to play preview', 'error', 2000);
+                    previewAudio = null;
+                };
+                
+                await previewAudio.play();
             } catch (err) {
                 console.error('Preview error:', err);
                 showToast(getErrorMessage(err), 'error', 2000);

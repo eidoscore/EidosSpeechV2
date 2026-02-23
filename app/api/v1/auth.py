@@ -299,15 +299,6 @@ async def login(
         
         logger.warning(f"AUTH_FAIL email={email} ip={ip} reason=account_banned")
         raise AuthenticationError("Invalid email or password")  # Generic message
-    
-    if not user.is_verified:
-        from app.core.audit import log_login_attempt
-        user_agent = request.headers.get("user-agent")
-        await log_login_attempt(db, email, ip, False, user_agent)
-        await db.commit()
-        
-        logger.warning(f"AUTH_FAIL email={email} ip={ip} reason=not_verified")
-        raise AuthenticationError("Invalid email or password")  # Generic message
 
     # Now verify password
     if not verify_password(body.password, user.password_hash):
@@ -339,7 +330,7 @@ async def login(
     
     await db.commit()
 
-    logger.info(f"USER_LOGIN email={email} ip={ip}")
+    logger.info(f"USER_LOGIN email={email} ip={ip} verified={user.is_verified}")
 
     access_token, refresh_token = create_token_pair(user.id, user.email)
 
@@ -347,7 +338,11 @@ async def login(
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
-        "user": {"email": user.email, "full_name": user.full_name},
+        "user": {
+            "email": user.email, 
+            "full_name": user.full_name,
+            "is_verified": user.is_verified,
+        },
     }
 
 
@@ -367,7 +362,7 @@ async def refresh_token(
 
     # Verify user still active
     user = await db.get(User, user_id)
-    if not user or not user.is_active or not user.is_verified:
+    if not user or not user.is_active:
         raise AuthenticationError("Account not accessible")
 
     # Revoke old refresh token

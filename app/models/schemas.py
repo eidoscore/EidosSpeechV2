@@ -16,6 +16,16 @@ class TTSRequest(BaseModel):
     rate: str = Field(default="+0%", description="Speech rate e.g. +10%, -5%")
     pitch: str = Field(default="+0Hz", description="Pitch e.g. +5Hz, -10Hz")
     volume: str = Field(default="+0%", description="Volume e.g. +10%, -5%")
+    style: Optional[str] = Field(
+        default=None,
+        description="Voice emotion/style (cheerful, sad, whispering, etc.) - only for supported voices"
+    )
+    style_degree: Optional[float] = Field(
+        default=None,
+        ge=0.01,
+        le=2.0,
+        description="Style intensity 0.01-2.0 (1.0 = normal, 2.0 = maximum)"
+    )
 
     @field_validator("text")
     @classmethod
@@ -23,6 +33,49 @@ class TTSRequest(BaseModel):
         v = v.strip()
         if not v:
             raise ValueError("text cannot be empty")
+        return v
+
+
+class TTSSubtitleRequest(TTSRequest):
+    words_per_cue: int = Field(
+        default=10,
+        ge=1,
+        le=50,
+        description="Words per subtitle cue line (1-50)"
+    )
+
+
+class ScriptRequest(BaseModel):
+    script: str = Field(
+        ...,
+        min_length=1,
+        max_length=50000,
+        description="Multi-voice script in [Speaker] text format"
+    )
+    voice_map: dict[str, str] = Field(
+        default_factory=dict,
+        description="Mapping of speaker names to voice IDs"
+    )
+    pause_ms: int = Field(
+        default=500,
+        ge=0,
+        le=3000,
+        description="Pause duration between lines in milliseconds"
+    )
+    rate: str = Field(default="+0%", description="Speech rate for all voices")
+    pitch: str = Field(default="+0Hz", description="Pitch for all voices")
+    volume: str = Field(default="+0%", description="Volume for all voices")
+
+    @field_validator("script")
+    @classmethod
+    def script_not_empty(cls, v):
+        v = v.strip()
+        if not v:
+            raise ValueError("script cannot be empty")
+        # Check max lines
+        lines = [l for l in v.split('\n') if l.strip()]
+        if len(lines) > 50:
+            raise ValueError("script cannot exceed 50 lines")
         return v
 
 

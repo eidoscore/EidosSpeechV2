@@ -9,6 +9,9 @@ services:
       - "8001:8001"
     env_file:
       - .env
+    environment:
+      # Override for 4 core, 8GB server (see SCALING_STRATEGY.md)
+      - MAX_HEAVY_OPERATIONS=3
     volumes:
       - ./data/db:/app/data/db
       - ./data/cache:/app/data/cache

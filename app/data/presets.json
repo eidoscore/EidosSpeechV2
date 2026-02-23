@@ -1,0 +1,113 @@
+{
+    "presets": [
+        {
+            "id": "news-anchor",
+            "name": "News Anchor",
+            "description": "Professional newscast, clear and authoritative",
+            "voice": "en-US-GuyNeural",
+            "rate": "+5%",
+            "pitch": "+0Hz",
+            "volume": "+10%",
+            "style": "newscast",
+            "category": "professional"
+        },
+        {
+            "id": "storyteller",
+            "name": "Storyteller",
+            "description": "Warm narrator for stories and audiobooks",
+            "voice": "en-US-JennyNeural",
+            "rate": "-10%",
+            "pitch": "-2Hz",
+            "volume": "+0%",
+            "style": "chat",
+            "style_degree": 1.2,
+            "category": "creative"
+        },
+        {
+            "id": "asmr",
+            "name": "ASMR / Whisper",
+            "description": "Soft whispering for ASMR content",
+            "voice": "en-US-AriaNeural",
+            "rate": "-20%",
+            "pitch": "-3Hz",
+            "volume": "-10%",
+            "style": "whispering",
+            "style_degree": 2.0,
+            "category": "creative"
+        },
+        {
+            "id": "hype-man",
+            "name": "Hype Man",
+            "description": "Excited, energetic for promos",
+            "voice": "en-US-GuyNeural",
+            "rate": "+15%",
+            "pitch": "+5Hz",
+            "volume": "+20%",
+            "style": "excited",
+            "style_degree": 1.8,
+            "category": "creative"
+        },
+        {
+            "id": "teacher",
+            "name": "Friendly Teacher",
+            "description": "Clear, patient for education",
+            "voice": "en-US-SaraNeural",
+            "rate": "-5%",
+            "pitch": "+0Hz",
+            "volume": "+5%",
+            "style": "friendly",
+            "category": "professional"
+        },
+        {
+            "id": "angry-rant",
+            "name": "Angry Rant",
+            "description": "Frustrated, dramatic",
+            "voice": "en-US-GuyNeural",
+            "rate": "+10%",
+            "pitch": "+5Hz",
+            "volume": "+20%",
+            "style": "angry",
+            "style_degree": 2.0,
+            "category": "creative"
+        },
+        {
+            "id": "sad-narrator",
+            "name": "Sad Narrator",
+            "description": "Melancholic, emotional readings",
+            "voice": "en-US-AriaNeural",
+            "rate": "-15%",
+            "pitch": "-5Hz",
+            "volume": "-5%",
+            "style": "sad",
+            "style_degree": 1.5,
+            "category": "creative"
+        },
+        {
+            "id": "indo-narrator",
+            "name": "Narator Indonesia",
+            "description": "Indonesian narrator, natural pace",
+            "voice": "id-ID-GadisNeural",
+            "rate": "+0%",
+            "pitch": "+0Hz",
+            "volume": "+0%",
+            "style": null,
+            "category": "regional"
+        },
+        {
+            "id": "indo-formal",
+            "name": "MC Formal Indonesia",
+            "description": "Indonesian MC, clear diction",
+            "voice": "id-ID-ArdiNeural",
+            "rate": "+10%",
+            "pitch": "+3Hz",
+            "volume": "+10%",
+            "style": null,
+            "category": "regional"
+        }
+    ],
+    "categories": [
+        {"id": "professional", "name": "Professional"},
+        {"id": "creative", "name": "Creative"},
+        {"id": "regional", "name": "Regional"}
+    ]
+}

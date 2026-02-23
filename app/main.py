@@ -12,8 +12,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, Request
+from fastapi import Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -501,3 +502,174 @@ async def blog_page():
     if path.exists():
         return FileResponse(str(path))
     return JSONResponse({"error": "Blog not found"}, status_code=404)
+
+
+@app.get("/embed", include_in_schema=False)
+async def embed_player(
+    text: str = Query(..., max_length=500, description="Text to synthesize"),
+    voice: str = Query(default="id-ID-GadisNeural", description="Voice ID"),
+):
+    """
+    Embeddable mini TTS player widget.
+    Anonymous rate limit applies (5/day per IP).
+    Max 500 characters.
+    """
+    import html
+    
+    # Escape HTML to prevent XSS
+    safe_text = html.escape(text)
+    safe_voice = html.escape(voice)
+    
+    embed_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eidosSpeech Player</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #050a06;
+            color: #e5e7eb;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 80px;
+        }}
+        .player {{
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }}
+        button {{
+            background: #10b981;
+            border: none;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }}
+        button:hover {{ background: #059669; }}
+        button:disabled {{ opacity: 0.5; cursor: not-allowed; }}
+        .text {{
+            flex: 1;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #9ca3af;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }}
+        .branding {{
+            text-align: center;
+            font-size: 10px;
+            color: #6b7280;
+            margin-top: 4px;
+        }}
+        .branding a {{
+            color: #10b981;
+            text-decoration: none;
+        }}
+        .branding a:hover {{ text-decoration: underline; }}
+        audio {{ display: none; }}
+    </style>
+</head>
+<body>
+    <div class="player">
+        <button id="playBtn" onclick="togglePlay()">
+            <svg id="playIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+            </svg>
+            <svg id="pauseIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+            </svg>
+        </button>
+        <div class="text">{safe_text}</div>
+    </div>
+    <div class="branding">
+        Powered by <a href="https://eidosspeech.xyz" target="_blank">eidosSpeech</a>
+    </div>
+    <audio id="audio"></audio>
+    
+    <script>
+        const audio = document.getElementById('audio');
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        let isLoaded = false;
+        
+        async function loadAudio() {{
+            if (isLoaded) return;
+            playBtn.disabled = true;
+            
+            try {{
+                const resp = await fetch('/api/v1/tts', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{
+                        text: `{safe_text}`,
+                        voice: `{safe_voice}`,
+                        rate: '+0%',
+                        pitch: '+0Hz',
+                        volume: '+0%'
+                    }})
+                }});
+                
+                if (!resp.ok) throw new Error('Failed to generate audio');
+                
+                const blob = await resp.blob();
+                audio.src = URL.createObjectURL(blob);
+                isLoaded = true;
+                playBtn.disabled = false;
+            }} catch (e) {{
+                alert('Failed to load audio. Please try again.');
+                playBtn.disabled = false;
+            }}
+        }}
+        
+        function togglePlay() {{
+            if (!isLoaded) {{
+                loadAudio().then(() => audio.play());
+                return;
+            }}
+            
+            if (audio.paused) {{
+                audio.play();
+            }} else {{
+                audio.pause();
+            }}
+        }}
+        
+        audio.addEventListener('play', () => {{
+            playIcon.style.display = 'none';
+            pauseIcon.style.display = 'block';
+        }});
+        
+        audio.addEventListener('pause', () => {{
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+        }});
+        
+        audio.addEventListener('ended', () => {{
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+        }});
+    </script>
+</body>
+</html>"""
+    
+    return HTMLResponse(content=embed_html)
+

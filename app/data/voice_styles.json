@@ -1,0 +1,75 @@
+{
+    "voices": {
+        "en-US-AriaNeural": {
+            "styles": ["chat", "cheerful", "customerservice", "empathetic", "narration-professional", "newscast-casual", "newscast-formal", "angry", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"],
+            "supports_degree": true
+        },
+        "en-US-GuyNeural": {
+            "styles": ["newscast", "angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"],
+            "supports_degree": true
+        },
+        "en-US-JennyNeural": {
+            "styles": ["assistant", "chat", "customerservice", "newscast", "angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"],
+            "supports_degree": true
+        },
+        "en-US-SaraNeural": {
+            "styles": ["angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"],
+            "supports_degree": true
+        },
+        "zh-CN-XiaoxiaoNeural": {
+            "styles": ["chat", "customerservice", "narration", "newscast", "affectionate", "angry", "calm", "cheerful", "disgruntled", "fearful", "gentle", "lyrical", "sad", "serious", "poetry-reading"],
+            "supports_degree": true
+        },
+        "zh-CN-YunxiNeural": {
+            "styles": ["narration-relaxed", "embarrassed", "fearful", "cheerful", "disgruntled", "serious", "angry", "sad", "depressed", "chat", "assistant", "newscast"],
+            "supports_degree": true
+        },
+        "zh-CN-YunyangNeural": {
+            "styles": ["customerservice", "narration-professional", "newscast-casual"],
+            "supports_degree": true
+        },
+        "ja-JP-NanamiNeural": {
+            "styles": ["chat", "cheerful", "customerservice"],
+            "supports_degree": true
+        },
+        "pt-BR-FranciscaNeural": {
+            "styles": ["calm"],
+            "supports_degree": false
+        },
+        "es-MX-DaliaNeural": {
+            "styles": ["chat", "cheerful"],
+            "supports_degree": true
+        }
+    },
+    "style_descriptions": {
+        "chat": "Casual, relaxed conversation",
+        "cheerful": "Positive, happy, upbeat",
+        "customerservice": "Professional, helpful service tone",
+        "empathetic": "Caring, understanding",
+        "narration-professional": "Clear, authoritative narration",
+        "newscast-casual": "Relaxed news delivery",
+        "newscast-formal": "Formal news broadcast",
+        "newscast": "Standard news delivery",
+        "angry": "Frustrated, upset",
+        "sad": "Melancholic, sorrowful",
+        "excited": "Energetic, enthusiastic",
+        "friendly": "Warm, approachable",
+        "terrified": "Scared, frightened",
+        "shouting": "Loud, intense",
+        "unfriendly": "Cold, distant",
+        "whispering": "Soft, quiet, ASMR-like",
+        "hopeful": "Optimistic, encouraging",
+        "assistant": "Helpful AI assistant tone",
+        "affectionate": "Loving, tender",
+        "calm": "Peaceful, relaxed",
+        "disgruntled": "Annoyed, dissatisfied",
+        "fearful": "Anxious, worried",
+        "gentle": "Soft, kind",
+        "lyrical": "Musical, poetic",
+        "serious": "Grave, solemn",
+        "poetry-reading": "Artistic, expressive",
+        "narration-relaxed": "Casual storytelling",
+        "embarrassed": "Shy, awkward",
+        "depressed": "Very sad, hopeless"
+    }
+}

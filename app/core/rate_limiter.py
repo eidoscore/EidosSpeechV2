@@ -35,6 +35,7 @@ class RateLimiter:
     - Per-minute: in-memory sliding window per identity
     - Per-day: SQLite daily_usage table
     - Concurrent: asyncio.Semaphore(1) per identity — reject if locked
+    - Global concurrent: Semaphore(10) for heavy operations (script mode)
     """
 
     def __init__(self):
@@ -42,8 +43,15 @@ class RateLimiter:
         self._minute_windows: dict[str, deque] = {}
         # Concurrent: per-identity semaphore
         self._semaphores: dict[str, asyncio.Semaphore] = {}
+        # Global concurrent limit for heavy operations (script mode)
+        # Configurable via environment variable for easy scaling
+        import os
+        max_heavy = int(os.getenv("MAX_HEAVY_OPERATIONS", "20"))  # Default 20
+        self._global_heavy_semaphore = asyncio.Semaphore(max_heavy)
         # Lock for dict manipulation
         self._lock = asyncio.Lock()
+        
+        logger.info(f"RATE_LIMITER_INIT max_heavy_operations={max_heavy}")
 
     def _get_identity(self, ctx: RequestContext) -> str:
         """IP for anonymous, API key ID for registered"""
@@ -207,6 +215,14 @@ class RateLimiter:
         """
         return _ConcurrentGuard(self, ctx)
 
+    def acquire_heavy_operation(self):
+        """
+        Async context manager for heavy operations (multi-voice script).
+        Global limit of MAX_HEAVY_OPERATIONS concurrent operations across all users.
+        Queues requests instead of rejecting (with timeout).
+        """
+        return _HeavyOperationGuard(self)
+
     def cleanup_stale_entries(self):
         """Remove stale in-memory entries (called by periodic cleanup)"""
         now = time.monotonic()
@@ -261,3 +277,31 @@ def get_rate_limiter() -> RateLimiter:
     if _rate_limiter is None:
         _rate_limiter = RateLimiter()
     return _rate_limiter
+
+
+class _HeavyOperationGuard:
+    """Context manager for global heavy operation limit"""
+
+    def __init__(self, limiter: RateLimiter):
+        self._limiter = limiter
+        self._acquired = False
+
+    async def __aenter__(self):
+        try:
+            # Wait up to 30 seconds for slot
+            await asyncio.wait_for(
+                self._limiter._global_heavy_semaphore.acquire(),
+                timeout=30.0
+            )
+            self._acquired = True
+            return self
+        except asyncio.TimeoutError:
+            raise RateLimitError(
+                "Server is currently processing too many heavy requests. Please try again in a moment.",
+                retry_after=30,
+                detail={"type": "heavy_operation_limit"}
+            )
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self._acquired:
+            self._limiter._global_heavy_semaphore.release()

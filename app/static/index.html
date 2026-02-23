@@ -235,18 +235,65 @@
 
                 <!-- Voice + Controls -->
                 <div class="card rounded-2xl p-5 space-y-5">
+                    <!-- Voice Presets -->
+                    <div id="presets-section">
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="text-sm font-medium text-gray-300">Voice Presets</label>
+                            <button onclick="showShortcutsHelp()" class="text-xs text-gray-500 hover:text-brand-400 transition-colors flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Shortcuts
+                            </button>
+                        </div>
+                        <div id="presets-grid" class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+                            <!-- Presets loaded dynamically -->
+                        </div>
+                    </div>
+
                     <div>
-                        <label class="text-sm font-medium text-gray-300 block mb-2">Voice</label>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-sm font-medium text-gray-300">Voice</label>
+                            <div class="flex items-center gap-2">
+                                <button id="filter-favorites" onclick="toggleFavoritesFilter()" class="text-xs px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-brand-400 transition-colors">
+                                    ⭐ Favorites
+                                </button>
+                            </div>
+                        </div>
                         <div class="flex gap-2">
                             <select id="voice-select"
                                 class="flex-1 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-500/50">
                                 <option value="">Loading voices...</option>
                             </select>
+                            <button id="favorite-btn" onclick="toggleFavorite()" class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-500 hover:text-amber-400 transition-colors">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                </svg>
+                            </button>
                             <select id="lang-filter"
                                 class="w-32 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-500/50"
                                 onchange="filterVoices()">
                                 <option value="">All langs</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <!-- Voice Style Controls (F2) -->
+                    <div id="style-controls" class="hidden">
+                        <div class="flex justify-between mb-2">
+                            <label class="text-xs text-gray-400">Voice Style</label>
+                            <span id="style-desc" class="text-xs text-gray-500"></span>
+                        </div>
+                        <select id="style-select" class="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 mb-3" onchange="updateStyleDescription()">
+                            <option value="">None (Natural)</option>
+                        </select>
+                        <div id="style-degree-control" class="hidden">
+                            <div class="flex justify-between mb-2">
+                                <label class="text-xs text-gray-400">Style Intensity</label>
+                                <span id="style-degree-value" class="text-xs text-brand-400 font-mono">1.0</span>
+                            </div>
+                            <input type="range" id="style-degree" min="0.01" max="2.0" step="0.1" value="1.0"
+                                oninput="updateSlider('style-degree')" class="w-full">
                         </div>
                     </div>
 
@@ -291,6 +338,12 @@
                     <span id="btn-text">Generate Speech</span>
                 </button>
 
+                <!-- Subtitle Option -->
+                <label class="flex items-center gap-2 text-sm text-gray-400 cursor-pointer hover:text-gray-300 transition-colors">
+                    <input type="checkbox" id="generate-subtitle" class="accent-brand-500">
+                    <span>Generate subtitle file (.srt)</span>
+                </label>
+
                 <!-- eidosStack Banner -->
                 <div
                     class="card rounded-2xl p-4 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/[.02] border border-white/[.05]">
@@ -325,16 +378,28 @@
                             <span id="audio-voice-label"></span>
                         </div>
                     </div>
-                    <audio id="audio-player" controls class="w-full audio-player"
+                    <!-- Waveform Canvas -->
+                    <canvas id="waveform-canvas" class="w-full h-20 rounded-xl mb-3 cursor-pointer" style="background: #0d1a0f;"></canvas>
+                    <audio id="audio-player" controls class="w-full audio-player hidden"
                         style="height:44px; accent-color:#10b981;"></audio>
-                    <a id="download-btn" href="#" download="tts_audio.mp3"
-                        class="mt-3 w-full flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-2.5 transition-colors">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Download MP3
-                    </a>
+                    <div class="flex gap-2 mt-3">
+                        <a id="download-btn" href="#" download="tts_audio.mp3"
+                            class="flex-1 flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-2.5 transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download MP3
+                        </a>
+                        <a id="download-srt-btn" href="#" download="tts_subtitle.srt"
+                            class="hidden flex-1 flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-2.5 transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            Download SRT
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -508,10 +573,162 @@
     <script src="/static/js/toast.js"></script>
     <script src="/static/js/auth.js"></script>
     <script src="/static/js/api-client.js"></script>
+    <script src="/static/js/favorites.js"></script>
+    <script src="/static/js/shortcuts.js"></script>
+    <script src="/static/js/waveform.js"></script>
     <script>
         // ── Voice Management ───────────────────────────────────────────────────────
         let allVoices = [];
         let currentAudioBlob = null;
+        let allPresets = [];
+        let activePreset = null;
+        let showingFavoritesOnly = false;
+        let waveformVisualizer = null;
+        let currentSrtContent = null;
+        let voiceStyles = null;
+
+        async function loadPresets() {
+            try {
+                const resp = await fetch('/api/v1/voices/presets');
+                const data = await resp.json();
+                allPresets = data.presets || [];
+                renderPresets();
+            } catch (e) {
+                console.error('Failed to load presets:', e);
+            }
+        }
+
+        async function loadVoiceStyles() {
+            try {
+                const resp = await fetch('/api/v1/voices/styles');
+                voiceStyles = await resp.json();
+            } catch (e) {
+                console.error('Failed to load voice styles:', e);
+            }
+        }
+
+        function updateStyleControls() {
+            const voiceId = document.getElementById('voice-select').value;
+            const styleControls = document.getElementById('style-controls');
+            const styleSelect = document.getElementById('style-select');
+            const styleDegreeControl = document.getElementById('style-degree-control');
+
+            if (!voiceStyles || !voiceId) {
+                styleControls.classList.add('hidden');
+                return;
+            }
+
+            const voiceConfig = voiceStyles.voices[voiceId];
+            if (!voiceConfig || !voiceConfig.styles || voiceConfig.styles.length === 0) {
+                styleControls.classList.add('hidden');
+                return;
+            }
+
+            // Show style controls
+            styleControls.classList.remove('hidden');
+
+            // Populate style dropdown
+            styleSelect.innerHTML = '<option value="">None (Natural)</option>';
+            voiceConfig.styles.forEach(style => {
+                const desc = voiceStyles.style_descriptions[style] || style;
+                styleSelect.innerHTML += `<option value="${style}">${style} - ${desc}</option>`;
+            });
+
+            // Show/hide degree control
+            if (voiceConfig.supports_degree) {
+                styleDegreeControl.classList.remove('hidden');
+            } else {
+                styleDegreeControl.classList.add('hidden');
+            }
+        }
+
+        function updateStyleDescription() {
+            const style = document.getElementById('style-select').value;
+            const descSpan = document.getElementById('style-desc');
+            
+            if (!style || !voiceStyles) {
+                descSpan.textContent = '';
+                return;
+            }
+
+            const desc = voiceStyles.style_descriptions[style] || '';
+            descSpan.textContent = desc;
+        }
+
+        function renderPresets() {
+            const grid = document.getElementById('presets-grid');
+            if (!allPresets.length) {
+                grid.innerHTML = '<p class="text-xs text-gray-500 col-span-full">No presets available</p>';
+                return;
+            }
+
+            grid.innerHTML = allPresets.slice(0, 6).map(preset => `
+                <button onclick="applyPreset('${preset.id}')" 
+                    class="preset-card text-left p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-brand-500/50 transition-all ${activePreset === preset.id ? 'border-brand-500 bg-brand-500/10' : ''}"
+                    data-preset-id="${preset.id}">
+                    <div class="text-xs font-medium text-white mb-1">${preset.name}</div>
+                    <div class="text-[10px] text-gray-500 line-clamp-2">${preset.description}</div>
+                </button>
+            `).join('');
+        }
+
+        function applyPreset(presetId) {
+            const preset = allPresets.find(p => p.id === presetId);
+            if (!preset) return;
+
+            activePreset = presetId;
+            
+            // Apply voice
+            document.getElementById('voice-select').value = preset.voice;
+            
+            // Apply rate, pitch, volume
+            const rateVal = parseInt(preset.rate.replace(/[^-\d]/g, ''));
+            const pitchVal = parseInt(preset.pitch.replace(/[^-\d]/g, ''));
+            const volumeVal = parseInt(preset.volume.replace(/[^-\d]/g, ''));
+            
+            document.getElementById('rate').value = rateVal;
+            document.getElementById('pitch').value = pitchVal;
+            document.getElementById('volume').value = volumeVal;
+            
+            updateSlider('rate');
+            updateSlider('pitch');
+            updateSlider('volume');
+            
+            renderPresets();
+            showToast(`Applied preset: ${preset.name}`, 'success', 2000);
+        }
+
+        function toggleFavorite() {
+            const voiceId = document.getElementById('voice-select').value;
+            if (!voiceId) return;
+            
+            const isFav = window.favoritesManager.toggle(voiceId);
+            updateFavoriteButton();
+            showToast(isFav ? 'Added to favorites' : 'Removed from favorites', 'success', 2000);
+        }
+
+        function updateFavoriteButton() {
+            const voiceId = document.getElementById('voice-select').value;
+            const btn = document.getElementById('favorite-btn');
+            const isFav = window.favoritesManager.isFavorite(voiceId);
+            
+            btn.innerHTML = isFav 
+                ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>'
+                : '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>';
+            
+            btn.className = isFav 
+                ? 'w-10 h-10 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 flex items-center justify-center text-amber-400 transition-colors'
+                : 'w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-500 hover:text-amber-400 transition-colors';
+        }
+
+        function toggleFavoritesFilter() {
+            showingFavoritesOnly = !showingFavoritesOnly;
+            const btn = document.getElementById('filter-favorites');
+            btn.className = showingFavoritesOnly
+                ? 'text-xs px-2 py-1 rounded-lg bg-brand-500/20 text-brand-400 transition-colors'
+                : 'text-xs px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-brand-400 transition-colors';
+            filterVoices();
+        }
 
         async function loadVoices() {
             try {
@@ -550,9 +767,15 @@
             const prevVal = sel.value;
 
             // Filter: Match language OR is_multilingual (if language is selected)
-            const filtered = lang
+            let filtered = lang
                 ? allVoices.filter(v => v.language_code === lang || v.is_multilingual)
                 : allVoices;
+
+            // Apply favorites filter
+            if (showingFavoritesOnly) {
+                const favorites = window.favoritesManager.getAll();
+                filtered = filtered.filter(v => favorites.includes(v.id));
+            }
 
             // Sort: Native voices first, then Multilingual, then alphabetical
             filtered.sort((a, b) => {
@@ -570,6 +793,10 @@
                 return `<option value="${v.id}">${v.name} (${v.language_code} · ${v.gender})${badge}</option>`;
             }).join('');
 
+            if (!filtered.length) {
+                sel.innerHTML = '<option value="">No voices found</option>';
+            }
+
             // Try restore previous selection
             if (prevVal && filtered.some(v => v.id === prevVal)) sel.value = prevVal;
             else {
@@ -581,6 +808,9 @@
                     sel.value = filtered[0].id;
                 }
             }
+
+            updateFavoriteButton();
+            updateStyleControls();
         }
 
         // ── Char Counter ───────────────────────────────────────────────────────────
@@ -598,16 +828,26 @@
 
         // ── Slider Controls ────────────────────────────────────────────────────────
         function updateSlider(id) {
-            const val = parseInt(document.getElementById(id).value);
-            const sign = val >= 0 ? '+' : '';
-            const suffix = id === 'pitch' ? 'Hz' : '%';
-            document.getElementById(`${id}-value`).textContent = `${sign}${val}${suffix}`;
+            const val = parseFloat(document.getElementById(id).value);
+            let displayVal;
+            
+            if (id === 'style-degree') {
+                displayVal = val.toFixed(1);
+            } else {
+                const intVal = parseInt(val);
+                const sign = intVal >= 0 ? '+' : '';
+                const suffix = id === 'pitch' ? 'Hz' : '%';
+                displayVal = `${sign}${intVal}${suffix}`;
+            }
+            
+            document.getElementById(`${id}-value`).textContent = displayVal;
         }
 
         // ── TTS Generation ─────────────────────────────────────────────────────────
         async function generateTTS() {
             const text = document.getElementById('tts-text').value.trim();
             const voice = document.getElementById('voice-select').value;
+            const generateSubtitle = document.getElementById('generate-subtitle').checked;
 
             if (!text) { showToast('Please enter some text.', 'warning'); return; }
             if (!voice) { showToast('Please select a voice.', 'warning'); return; }
@@ -615,6 +855,10 @@
             const rateVal = parseInt(document.getElementById('rate').value);
             const pitchVal = parseInt(document.getElementById('pitch').value);
             const volumeVal = parseInt(document.getElementById('volume').value);
+            
+            // Get style parameters
+            const style = document.getElementById('style-select').value || null;
+            const styleDegree = style ? parseFloat(document.getElementById('style-degree').value) : null;
 
             const formatVal = (v, suffix) => v >= 0 ? `+${v}${suffix}` : `${v}${suffix}`;
 
@@ -630,6 +874,44 @@
             if (apiKey) headers['X-API-Key'] = apiKey;
 
             try {
+                // If subtitle requested, call subtitle endpoint first
+                if (generateSubtitle) {
+                    const srtResp = await fetch('/api/v1/tts/subtitle', {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify({
+                            text,
+                            voice,
+                            rate: formatVal(rateVal, '%'),
+                            pitch: formatVal(pitchVal, 'Hz'),
+                            volume: formatVal(volumeVal, '%'),
+                            words_per_cue: 10,
+                            style: style,
+                            style_degree: styleDegree,
+                        }),
+                    });
+
+                    if (!srtResp.ok) {
+                        const err = await srtResp.json();
+                        showToast(err.message || 'Subtitle generation failed.', 'error');
+                        return;
+                    }
+
+                    const srtData = await srtResp.json();
+                    currentSrtContent = srtData.srt;
+
+                    // Update rate limit display from subtitle response
+                    const remaining = srtResp.headers.get('X-RateLimit-Remaining-Day');
+                    const limit = srtResp.headers.get('X-RateLimit-Limit-Day');
+                    if (AuthStore.isAuthenticated() && remaining !== null) {
+                        const used = parseInt(limit) - parseInt(remaining);
+                        document.getElementById('usage-req').textContent = used;
+                        const pct = (used / parseInt(limit)) * 100;
+                        document.getElementById('usage-req-bar').style.width = pct + '%';
+                    }
+                }
+
+                // Now generate audio (normal endpoint)
                 const resp = await fetch('/api/v1/tts', {
                     method: 'POST',
                     headers,
@@ -639,6 +921,8 @@
                         rate: formatVal(rateVal, '%'),
                         pitch: formatVal(pitchVal, 'Hz'),
                         volume: formatVal(volumeVal, '%'),
+                        style: style,
+                        style_degree: styleDegree,
                     }),
                 });
 
@@ -681,6 +965,24 @@
                 const dlBtn = document.getElementById('download-btn');
                 dlBtn.href = url;
                 dlBtn.download = `tts_${voice}_${Date.now()}.mp3`;
+
+                // SRT download button
+                const srtBtn = document.getElementById('download-srt-btn');
+                if (currentSrtContent) {
+                    const srtBlob = new Blob([currentSrtContent], { type: 'text/plain' });
+                    const srtUrl = URL.createObjectURL(srtBlob);
+                    srtBtn.href = srtUrl;
+                    srtBtn.download = `tts_${voice}_${Date.now()}.srt`;
+                    srtBtn.classList.remove('hidden');
+                } else {
+                    srtBtn.classList.add('hidden');
+                }
+
+                // Initialize waveform visualizer
+                if (!waveformVisualizer) {
+                    waveformVisualizer = new WaveformVisualizer('waveform-canvas', player);
+                }
+                await waveformVisualizer.loadAudio(url);
 
                 player.play().catch(() => { });
                 showToast(cached ? '⚡ Served from cache' : 'Speech generated!', 'success', 3000);
@@ -897,6 +1199,40 @@
             await AuthStore.init();
             await updateUIForAuth();
             await loadVoices();
+            await loadPresets();
+            await loadVoiceStyles();
+
+            // Voice select change listener
+            document.getElementById('voice-select').addEventListener('change', () => {
+                updateFavoriteButton();
+                updateStyleControls();
+            });
+
+            // Keyboard shortcuts integration
+            document.addEventListener('shortcut', (e) => {
+                const action = e.detail.action;
+                if (action === 'generate') generateTTS();
+                else if (action === 'play') {
+                    const player = document.getElementById('audio-player');
+                    if (player.paused) player.play();
+                    else player.pause();
+                }
+                else if (action === 'download') {
+                    const dlBtn = document.getElementById('download-btn');
+                    if (dlBtn.href !== '#') dlBtn.click();
+                }
+                else if (action === 'downloadSrt') {
+                    const srtBtn = document.getElementById('download-srt-btn');
+                    if (!srtBtn.classList.contains('hidden') && srtBtn.href !== '#') {
+                        srtBtn.click();
+                    }
+                }
+                else if (action === 'stop') {
+                    const player = document.getElementById('audio-player');
+                    player.pause();
+                    player.currentTime = 0;
+                }
+            });
 
             // Logout button
             document.getElementById('nav-logout-btn').addEventListener('click', async () => {

@@ -31,6 +31,10 @@
     <!-- Google AdSense Verification -->
     <meta name="google-adsense-account" content="ca-pub-9427183479605031">
     
+    <!-- Security Meta Tags -->
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
     <!-- Breadcrumb Schema -->
     <script type="application/ld+json">
     {
@@ -584,23 +588,25 @@
 
             <!-- Login Form -->
             <div id="form-login" class="p-6 space-y-4">
+                <form id="login-form-element" onsubmit="event.preventDefault(); doLogin();" autocomplete="on">
                 <div>
                     <label class="text-xs text-gray-400 block mb-1.5">Email address</label>
-                    <input id="login-email" type="email" placeholder="you@example.com" autocomplete="email"
+                    <input id="login-email" type="email" name="email" placeholder="you@example.com" autocomplete="email" required
                         class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500/50 transition-colors">
                 </div>
                 <div>
                     <label class="text-xs text-gray-400 block mb-1.5">Password</label>
-                    <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password"
+                    <input id="login-password" type="password" name="password" placeholder="••••••••" autocomplete="current-password" required
                         class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500/50 transition-colors"
                         onkeydown="if(event.key==='Enter')doLogin()">
                 </div>
                 <!-- Turnstile Widget -->
                 <div id="cf-turnstile-login"></div>
 
-                <button id="login-submit-btn" onclick="doLogin()"
+                <button id="login-submit-btn" type="submit"
                     class="w-full bg-brand-500 hover:bg-brand-400 text-white font-semibold py-2.5 rounded-xl transition-colors shadow-lg shadow-brand-500/20">Sign
                     In</button>
+                </form>
                 <div class="flex items-center justify-between text-xs text-gray-500">
                     <button onclick="switchModal('forgot')" class="hover:text-gray-300 transition-colors">Forgot
                         password?</button>
@@ -611,25 +617,26 @@
 
             <!-- Register Form -->
             <div id="form-register" class="p-6 space-y-4 hidden">
+                <form id="register-form-element" onsubmit="event.preventDefault(); doRegister();" autocomplete="on">
                 <div>
                     <label class="text-xs text-gray-400 block mb-1.5">Full name <span
                             class="text-gray-600">(optional)</span></label>
-                    <input id="reg-name" type="text" placeholder="Your name"
+                    <input id="reg-name" type="text" name="name" placeholder="Your name" autocomplete="name"
                         class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500/50 transition-colors">
                 </div>
                 <div>
                     <label class="text-xs text-gray-400 block mb-1.5">Email address</label>
-                    <input id="reg-email" type="email" placeholder="you@example.com" autocomplete="email"
+                    <input id="reg-email" type="email" name="email" placeholder="you@example.com" autocomplete="email" required
                         class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500/50 transition-colors">
                 </div>
                 <div>
                     <label class="text-xs text-gray-400 block mb-1.5">Password <span class="text-gray-600">(min 8
                             characters)</span></label>
-                    <input id="reg-password" type="password" placeholder="Strong password" autocomplete="new-password"
+                    <input id="reg-password" type="password" name="password" placeholder="Strong password" autocomplete="new-password" required minlength="8"
                         class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-brand-500/50 transition-colors">
                 </div>
                 <label class="flex items-start gap-2.5 cursor-pointer">
-                    <input id="reg-tos" type="checkbox" class="mt-0.5 accent-brand-500">
+                    <input id="reg-tos" type="checkbox" class="mt-0.5 accent-brand-500" required>
                     <span class="text-xs text-gray-400">I agree to the <a href="/tos" target="_blank"
                             class="text-brand-400 hover:underline">Terms of Service</a> and consent to receive
                         transactional emails.</span>
@@ -637,9 +644,10 @@
                 <!-- Turnstile Widget -->
                 <div id="cf-turnstile-register"></div>
 
-                <button id="register-submit-btn" onclick="doRegister()"
+                <button id="register-submit-btn" type="submit"
                     class="w-full bg-brand-500 hover:bg-brand-400 text-white font-semibold py-2.5 rounded-xl transition-colors shadow-lg shadow-brand-500/20">Create
                     Free Account</button>
+                </form>
                 <p class="text-center text-xs text-gray-500">Already have an account? <button
                         onclick="switchModal('login')" class="text-brand-400 hover:underline">Sign in</button></p>
             </div>

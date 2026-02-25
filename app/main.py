@@ -232,6 +232,11 @@ async def add_security_headers(request: Request, call_next):
     # XSS protection (legacy but still useful)
     response.headers["X-XSS-Protection"] = "1; mode=block"
     
+    # HSTS - Force HTTPS (helps prevent phishing detection)
+    # Only add if running on HTTPS (check if request is secure)
+    if request.url.scheme == "https":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    
     return response
 
 

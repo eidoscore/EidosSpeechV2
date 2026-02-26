@@ -612,7 +612,10 @@ async def regen_key(
 
     # Check cooldown via last API key creation time
     result = await db.execute(
-        select(ApiKey).where(ApiKey.user_id == user_id, ApiKey.is_active == True)
+        select(ApiKey)
+        .where(ApiKey.user_id == user_id, ApiKey.is_active == True)
+        .order_by(desc(ApiKey.created_at))
+        .limit(1)
     )
     old_key = result.scalar_one_or_none()
 

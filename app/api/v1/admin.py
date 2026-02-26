@@ -139,9 +139,12 @@ async def admin_users(
 
     user_list = []
     for u in users:
-        # Get active API key
+        # Get active API key (latest one if multiple exist)
         key_result = await db.execute(
-            select(ApiKey).where(ApiKey.user_id == u.id, ApiKey.is_active == True)
+            select(ApiKey)
+            .where(ApiKey.user_id == u.id, ApiKey.is_active == True)
+            .order_by(desc(ApiKey.created_at))
+            .limit(1)
         )
         key = key_result.scalar_one_or_none()
 
